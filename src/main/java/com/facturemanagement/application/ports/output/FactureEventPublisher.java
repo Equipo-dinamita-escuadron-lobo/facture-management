@@ -1,5 +1,7 @@
 package com.facturemanagement.application.ports.output;
 
-public class FactureEventPublisher {
-    
+import com.facturemanagement.domain.event.FactureCreatedEvent;
+
+public interface FactureEventPublisher {
+    void publishFactureCreatedEvent(FactureCreatedEvent event);
 }

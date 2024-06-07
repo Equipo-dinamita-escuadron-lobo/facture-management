@@ -1,5 +1,24 @@
 package com.facturemanagement.infraestructure.adapters.output.customizedexception.data.response;
 
-public class ExceptionResponse {
+import java.time.LocalDateTime;
+import java.util.List;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Builder
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+public class ExceptionResponse{
+    private LocalDateTime date;
+
+    private String message;
+
+    private List<String> details;
     
 }

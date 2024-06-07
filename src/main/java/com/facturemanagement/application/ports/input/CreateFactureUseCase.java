@@ -1,5 +1,7 @@
 package com.facturemanagement.application.ports.input;
 
-public class CreateFactureUseCase {
-    
+import com.facturemanagement.domain.model.Facture;
+
+public interface CreateFactureUseCase {
+    Facture createFacture(Facture facture);
 }
