@@ -10,7 +10,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Product {
-    private int productId;
+    private long productId;
+    private long thId;
     private double amount;
     private String description;
     private double vat;
