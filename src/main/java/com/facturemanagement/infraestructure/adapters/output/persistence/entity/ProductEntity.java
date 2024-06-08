@@ -20,6 +20,9 @@ public class ProductEntity {
     @Column(name = "product_id", nullable = false, unique = true)
     private long productId;
 
+    @Column(name = "th_id", nullable = false)
+    private long thId;
+
     @Column(name = "product_amount", nullable = false)
     private double amount;
 
