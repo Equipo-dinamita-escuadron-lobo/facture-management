@@ -1,6 +1,9 @@
 package com.facturemanagement.infraestructure.adapters.output.persistence.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.facturemanagement.infraestructure.adapters.output.persistence.entity.FactureEntity;
@@ -8,4 +11,12 @@ import com.facturemanagement.infraestructure.adapters.output.persistence.entity.
 @Repository
 public interface FactureRepository extends JpaRepository<FactureEntity, Long>{
     
+    @Query("SELECT f FROM FACTURES f INNER JOIN f.factProducts WHERE f.entId like :entId")
+    Page<FactureEntity> findAllByEnterpriseId(String entId, Pageable pageable);
+
+    @Query("SELECT f FROM FACTURES f INNER JOIN f.factProducts WHERE f.entId like :entId AND f.factureType LIKE 'sales'")
+    Page<FactureEntity> findAllSalesFacturesByEnterpriseId(String entId, Pageable pageable);
+
+    @Query("SELECT f FROM FACTURES f INNER JOIN f.factProducts WHERE f.entId like :entId AND f.factureType LIKE 'shopping'")
+    Page<FactureEntity> findAllShoppingFacturesByEnterpriseId(String entId, Pageable pageable);
 }

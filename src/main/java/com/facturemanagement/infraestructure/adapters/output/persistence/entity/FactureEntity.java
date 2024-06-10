@@ -38,6 +38,9 @@ public class FactureEntity {
     @Column(unique = true, nullable = false, name = "fact_id")
     private Long factId;
 
+    @Column(name = "ent_id")
+    private String entId;
+
     @Column(name="th_id")
     private Long thId;
 
@@ -49,7 +52,7 @@ public class FactureEntity {
     
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(
-        name = "factures_and_products",
+        name = "FACTURES_AND_PRODUCTS",
         joinColumns = @JoinColumn(name = "fact_id"),
         inverseJoinColumns = @JoinColumn(name = "product_id")
     )
