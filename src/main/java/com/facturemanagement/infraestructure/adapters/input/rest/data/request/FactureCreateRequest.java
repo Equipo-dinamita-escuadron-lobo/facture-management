@@ -20,19 +20,23 @@ import lombok.Setter;
 @NoArgsConstructor
 public class FactureCreateRequest {
     private Long factId;
-    @NotNull(message = "The holder ID cannot be null.")
+
+    @NotNull(message = "The enterprise ID cannot be null.")
+    private Long entId;
+
+    @NotNull(message = "The third-partie ID cannot be null.")
     private Long thId;
     
-    @NotNull(message = "The invoice code cannot be null.")
+    @NotNull(message = "The facture code cannot be null.")
     private String factCode;
     
-    @NotNull(message = "The invoice type cannot be null.")
+    @NotNull(message = "The facture type cannot be null.")
     private eFactureType factureType;
     
     @NotNull(message = "The list of products cannot be null.")
     private List<Product> factProducts;
     
-    @NotNull(message = "The invoice subtotal cannot be null.")
+    @NotNull(message = "The facture subtotal cannot be null.")
     private Double factSubtotals;
     
     @NotNull(message = "The sales tax cannot be null.")

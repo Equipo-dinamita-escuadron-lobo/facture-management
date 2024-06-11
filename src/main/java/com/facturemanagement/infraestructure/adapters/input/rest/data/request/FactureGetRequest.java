@@ -13,6 +13,6 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class FactureGetRequest {
-    @NotNull(message = "Enterprise Id cannot ve null.")
-    private String entId;
+    @NotNull(message = "Facture Id cannot be null.")
+    private long factId;
 }
