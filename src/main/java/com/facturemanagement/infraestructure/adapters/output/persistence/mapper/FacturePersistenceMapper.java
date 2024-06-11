@@ -7,6 +7,7 @@ import com.facturemanagement.infraestructure.adapters.output.persistence.entity.
 
 @Mapper(componentModel = "spring")
 public interface FacturePersistenceMapper {
+
     FactureEntity toFactureEntity(Facture facture);
 
     Facture toFacture(FactureEntity factureEntity);

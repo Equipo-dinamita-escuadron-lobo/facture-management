@@ -12,6 +12,8 @@ import com.facturemanagement.domain.model.eFactureType;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -38,20 +40,24 @@ public class FactureEntity {
     @Column(unique = true, nullable = false, name = "fact_id")
     private Long factId;
 
+    @Column(name = "ent_id")
+    private String entId;
+
     @Column(name="th_id")
     private Long thId;
 
     @Column(name="fact_code")
     private String factCode;
 
+    @Enumerated(EnumType.STRING)
     @Column(name="fact_type")
     private eFactureType factureType;
     
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(
-        name = "factures_and_products",
+        name = "FACTURES_AND_PRODUCTS",
         joinColumns = @JoinColumn(name = "fact_id"),
-        inverseJoinColumns = @JoinColumn(name = "product_id")
+        inverseJoinColumns = @JoinColumn(name = "prod_id")
     )
     @Default
     private Set<ProductEntity> factProducts = new HashSet<>();

@@ -15,4 +15,7 @@ import lombok.Setter;
 public class FactureListRequest {
     @NotNull(message = "Enterprise Id cannot ve null.")
     private String entId;
+
+    @NotNull(message = "Page number cannovt be null")
+    private int numPage;
 }
