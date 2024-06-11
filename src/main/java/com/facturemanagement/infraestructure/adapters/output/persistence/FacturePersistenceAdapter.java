@@ -1,8 +1,6 @@
 package com.facturemanagement.infraestructure.adapters.output.persistence;
 
-import java.util.HashSet;
 import java.util.Optional;
-import java.util.Set;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -10,11 +8,8 @@ import org.springframework.data.domain.Pageable;
 import com.facturemanagement.application.ports.output.FactureCreatedOutputPort;
 import com.facturemanagement.application.ports.output.FactureGetOutputPort;
 import com.facturemanagement.domain.model.Facture;
-import com.facturemanagement.domain.model.Product;
 import com.facturemanagement.infraestructure.adapters.output.persistence.entity.FactureEntity;
-import com.facturemanagement.infraestructure.adapters.output.persistence.entity.ProductEntity;
 import com.facturemanagement.infraestructure.adapters.output.persistence.mapper.FacturePersistenceMapper;
-import com.facturemanagement.infraestructure.adapters.output.persistence.mapper.ProductPersistenceMapper;
 import com.facturemanagement.infraestructure.adapters.output.persistence.repository.FactureRepository;
 
 import jakarta.persistence.EntityManager;
@@ -30,7 +25,6 @@ public class FacturePersistenceAdapter implements FactureCreatedOutputPort, Fact
     private final FactureRepository factureRepository;
 
     private final FacturePersistenceMapper facturePersistenceMapper;
-    private final ProductPersistenceMapper productPersistenceMapper;
 
     @Override
     public Facture saveFacture(Facture facture) {
@@ -42,13 +36,16 @@ public class FacturePersistenceAdapter implements FactureCreatedOutputPort, Fact
         }
 
         FactureEntity factureEntity = this.facturePersistenceMapper.toFactureEntity(facture);
+        
+        /*
         Set<ProductEntity> productEntities = new HashSet<ProductEntity>();
 
         for(Product product: facture.getFactProducts()){
             productEntities.add(this.productPersistenceMapper.toProductEntity(product));
         }
-
         factureEntity.setFactProducts(productEntities);
+        */
+
 
         factureRepository.save(factureEntity);
 

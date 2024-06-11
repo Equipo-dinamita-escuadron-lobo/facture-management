@@ -10,16 +10,14 @@ import com.facturemanagement.domain.service.ListFacturesService;
 import com.facturemanagement.infraestructure.adapters.output.eventpublisher.FactureEventPublisherAdapter;
 import com.facturemanagement.infraestructure.adapters.output.persistence.FacturePersistenceAdapter;
 import com.facturemanagement.infraestructure.adapters.output.persistence.mapper.FacturePersistenceMapper;
-import com.facturemanagement.infraestructure.adapters.output.persistence.mapper.ProductPersistenceMapper;
 import com.facturemanagement.infraestructure.adapters.output.persistence.repository.FactureRepository;
-import com.facturemanagement.infraestructure.adapters.output.persistence.repository.ProductRepository;
 
 @Configuration
 public class BeanConfiguration{
-
+    
     @Bean
-    public FacturePersistenceAdapter facturePersistenceAdapter(FactureRepository factureRepository, FacturePersistenceMapper facturePersistenceMapper, ProductPersistenceMapper productPersistenceMapper) {
-        return new FacturePersistenceAdapter(factureRepository, facturePersistenceMapper,productPersistenceMapper);
+    public FacturePersistenceAdapter facturePersistenceAdapter(FactureRepository factureRepository, FacturePersistenceMapper facturePersistenceMapper) {
+        return new FacturePersistenceAdapter(factureRepository, facturePersistenceMapper);
     }
 
     @Bean

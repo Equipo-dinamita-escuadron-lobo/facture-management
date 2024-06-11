@@ -9,14 +9,15 @@ import org.springframework.stereotype.Repository;
 import com.facturemanagement.infraestructure.adapters.output.persistence.entity.FactureEntity;
 
 @Repository
-public interface FactureRepository extends JpaRepository<FactureEntity, Long>{
+public interface FactureRepository extends JpaRepository<FactureEntity, Long> {
     
-    @Query("SELECT f FROM FACTURES f INNER JOIN f.factProducts WHERE f.entId like :entId")
+    @Query("SELECT f FROM FactureEntity f JOIN f.factProducts fp WHERE f.entId LIKE :entId")
     Page<FactureEntity> findAllByEnterpriseId(String entId, Pageable pageable);
 
-    @Query("SELECT f FROM FACTURES f INNER JOIN f.factProducts WHERE f.entId like :entId AND f.factureType LIKE 'sales'")
+    @Query("SELECT f FROM FactureEntity f JOIN f.factProducts fp WHERE f.entId LIKE :entId AND f.factureType LIKE 'sales'")
     Page<FactureEntity> findAllSalesFacturesByEnterpriseId(String entId, Pageable pageable);
 
-    @Query("SELECT f FROM FACTURES f INNER JOIN f.factProducts WHERE f.entId like :entId AND f.factureType LIKE 'shopping'")
+    @Query("SELECT f FROM FactureEntity f JOIN f.factProducts fp WHERE f.entId LIKE :entId AND f.factureType LIKE 'shopping'")
     Page<FactureEntity> findAllShoppingFacturesByEnterpriseId(String entId, Pageable pageable);
 }
+
