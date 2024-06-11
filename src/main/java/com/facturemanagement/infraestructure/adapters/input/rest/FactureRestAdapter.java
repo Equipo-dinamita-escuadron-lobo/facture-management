@@ -14,7 +14,6 @@ import com.facturemanagement.application.ports.input.GetFactureUseCase;
 import com.facturemanagement.application.ports.input.ListFactureUseCase;
 import com.facturemanagement.domain.model.Facture;
 import com.facturemanagement.infraestructure.adapters.input.rest.data.request.FactureCreateRequest;
-import com.facturemanagement.infraestructure.adapters.input.rest.data.request.FactureGetRequest;
 import com.facturemanagement.infraestructure.adapters.input.rest.data.request.FactureListRequest;
 import com.facturemanagement.infraestructure.adapters.input.rest.data.response.FactureCreateResponse;
 import com.facturemanagement.infraestructure.adapters.input.rest.data.response.FactureGetResponse;
@@ -58,16 +57,16 @@ public class FactureRestAdapter {
     }
 
     @GetMapping("/")
-    public ResponseEntity<FactureGetResponse> getAllFacturesBy(@RequestParam @Valid FactureGetRequest request) {
+    public ResponseEntity<FactureGetResponse> getFactureBy(@RequestParam @Valid long factId) {
         System.out.println("\nEntrando a petición obtener una factura por su Id\n");
 
-        Facture facture = this.getFactureUseCase.getFactureBy(request.getFactId());
+        Facture facture = this.getFactureUseCase.getFactureBy(factId);
 
         return new ResponseEntity<>(this.factureRestMapper.toGetFactureResponse(facture), HttpStatus.OK);
     }
-    
-    @GetMapping("/sales")
-    public ResponseEntity<FactureListResponse> getAllFactureBy(@RequestParam @Valid FactureListRequest request) {
+
+    @GetMapping("/all")
+    public ResponseEntity<FactureListResponse> getAllFacturesBy(@RequestBody @Valid FactureListRequest request) {
         System.out.println("\nEntrando a petición obtener todas las facturas de una empresa\n");
 
         Pageable page = PageRequest.of(request.getNumPage(), 10);
@@ -77,5 +76,25 @@ public class FactureRestAdapter {
         return new ResponseEntity<>(this.factureRestMapper.toFactureListResponse(pageFactures),HttpStatus.OK);
     }
     
+    @GetMapping("/sales")
+    public ResponseEntity<FactureListResponse> getAllSalesFacturesBy(@RequestBody @Valid FactureListRequest request) {
+        System.out.println("\nEntrando a petición obtener todas las facturas de ventas de una empresa\n");
+
+        Pageable page = PageRequest.of(request.getNumPage(), 10);
+
+        Page<Facture> pageFactures = this.listFactureUseCase.getAllSalesFacturesBy(request.getEntId(), page);  
+
+        return new ResponseEntity<>(this.factureRestMapper.toFactureListResponse(pageFactures),HttpStatus.OK);
+    }
     
+    @GetMapping("/shopping")
+    public ResponseEntity<FactureListResponse> getAllShoppingFacturesBy(@RequestBody @Valid FactureListRequest request) {
+        System.out.println("\nEntrando a petición obtener todas las facturas de compras de una empresa\n");
+
+        Pageable page = PageRequest.of(request.getNumPage(), 10);
+
+        Page<Facture> pageFactures = this.listFactureUseCase.getAllShoppingFacturesBy(request.getEntId(), page);  
+
+        return new ResponseEntity<>(this.factureRestMapper.toFactureListResponse(pageFactures),HttpStatus.OK);
+    }
 }

@@ -14,10 +14,10 @@ public interface FactureRepository extends JpaRepository<FactureEntity, Long> {
     @Query("SELECT f FROM FactureEntity f JOIN f.factProducts fp WHERE f.entId LIKE :entId")
     Page<FactureEntity> findAllByEnterpriseId(String entId, Pageable pageable);
 
-    @Query("SELECT f FROM FactureEntity f JOIN f.factProducts fp WHERE f.entId LIKE :entId AND f.factureType LIKE 'sales'")
+    @Query("SELECT f FROM FactureEntity f JOIN f.factProducts fp WHERE f.entId LIKE :entId AND f.factureType LIKE 'Venta'")
     Page<FactureEntity> findAllSalesFacturesByEnterpriseId(String entId, Pageable pageable);
 
-    @Query("SELECT f FROM FactureEntity f JOIN f.factProducts fp WHERE f.entId LIKE :entId AND f.factureType LIKE 'shopping'")
+    @Query("SELECT f FROM FactureEntity f JOIN f.factProducts fp WHERE f.entId LIKE :entId AND f.factureType LIKE 'Compra'")
     Page<FactureEntity> findAllShoppingFacturesByEnterpriseId(String entId, Pageable pageable);
 }
 
