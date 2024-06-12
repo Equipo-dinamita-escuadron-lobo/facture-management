@@ -11,13 +11,14 @@ import com.facturemanagement.infraestructure.adapters.output.eventpublisher.Fact
 import com.facturemanagement.infraestructure.adapters.output.persistence.FacturePersistenceAdapter;
 import com.facturemanagement.infraestructure.adapters.output.persistence.mapper.FacturePersistenceMapper;
 import com.facturemanagement.infraestructure.adapters.output.persistence.repository.FactureRepository;
+import com.facturemanagement.infraestructure.adapters.output.persistence.repository.ProductRepository;
 
 @Configuration
 public class BeanConfiguration{
     
     @Bean
-    public FacturePersistenceAdapter facturePersistenceAdapter(FactureRepository factureRepository, FacturePersistenceMapper facturePersistenceMapper) {
-        return new FacturePersistenceAdapter(factureRepository, facturePersistenceMapper);
+    public FacturePersistenceAdapter facturePersistenceAdapter(FactureRepository factureRepository, ProductRepository productRepository,FacturePersistenceMapper facturePersistenceMapper) {
+        return new FacturePersistenceAdapter(factureRepository,productRepository, facturePersistenceMapper);
     }
 
     @Bean

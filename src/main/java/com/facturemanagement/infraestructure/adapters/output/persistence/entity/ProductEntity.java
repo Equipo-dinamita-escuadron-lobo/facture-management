@@ -4,6 +4,7 @@ import java.util.Set;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
@@ -38,6 +39,6 @@ public class ProductEntity {
     @Column(name = "prod_subtotal", nullable = false)
     private double subtotal;
 
-    @ManyToMany(mappedBy = "factProducts")
+    @ManyToMany(mappedBy = "factProducts", fetch = FetchType.LAZY)
     private Set<FactureEntity> factures;
 }
