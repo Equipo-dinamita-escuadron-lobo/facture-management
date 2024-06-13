@@ -42,6 +42,8 @@ public class FacturePersistenceAdapter implements FactureCreatedOutputPort, Fact
             return null;
         }
 
+        Set<Product> productsAux = facture.getFactProducts();
+
         FactureEntity factureEntity = this.facturePersistenceMapper.toFactureEntity(facture);
 
         Set<Long> productIds = facture.getFactProducts().stream()
@@ -49,7 +51,19 @@ public class FacturePersistenceAdapter implements FactureCreatedOutputPort, Fact
                                       .collect(Collectors.toSet());
         Set<ProductEntity> products = productRepository.findAllById(productIds).stream().collect(Collectors.toSet());
 
+        //listar los id de los producros que ya estan en la base de datos
+        Set<Long> productIdsExist = products.stream()
+                                        .map(ProductEntity::getProductId)
+                                        .collect(Collectors.toSet());
+
         factureEntity.getFactProducts().clear();
+
+        for (Product product : productsAux) {
+            if (!productIdsExist.contains(product.getProductId())) {
+                products.add(this.facturePersistenceMapper.toProductEntity(product));
+            }
+        }
+
         factureEntity.getFactProducts().addAll(products);
 
 
