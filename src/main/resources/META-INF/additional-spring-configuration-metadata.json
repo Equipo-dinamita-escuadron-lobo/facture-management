@@ -8,6 +8,16 @@
       "name": "jwt.auth.converter.resource-id",
       "type": "java.lang.String",
       "description": "A description for 'jwt.auth.converter.resource-id'"
+    },
+    {
+      "name": "env.user",
+      "type": "java.lang.String",
+      "description": "Secret"
+    },
+    {
+      "name": "env.password",
+      "type": "java.lang.String",
+      "description": "Secret"
     }
   ]
 }

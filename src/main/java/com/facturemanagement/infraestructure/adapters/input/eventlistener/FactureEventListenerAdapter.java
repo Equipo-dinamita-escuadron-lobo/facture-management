@@ -4,6 +4,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import com.facturemanagement.domain.event.FactureCreatedEvent;
+import com.facturemanagement.domain.event.FacturePDFGeneratedEvent;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -14,5 +15,10 @@ public class FactureEventListenerAdapter {
     @EventListener
     public void handleCreate(FactureCreatedEvent event){
         log.info("Facture created with id "+event.getFactId()+" at "+event.getDate());
+    }
+
+    @EventListener
+    public void handleGeneratePDF(FacturePDFGeneratedEvent event){
+        log.info("PDF generated of facture with id "+event.getFactId()+" at "+event.getDate());
     }
 }
