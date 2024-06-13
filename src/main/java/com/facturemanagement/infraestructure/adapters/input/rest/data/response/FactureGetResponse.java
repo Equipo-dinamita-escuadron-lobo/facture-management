@@ -6,7 +6,6 @@ import java.util.Set;
 import com.facturemanagement.domain.model.Product;
 import com.facturemanagement.domain.model.eFactureType;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

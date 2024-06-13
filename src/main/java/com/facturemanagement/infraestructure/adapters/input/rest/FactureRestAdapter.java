@@ -1,25 +1,31 @@
 package com.facturemanagement.infraestructure.adapters.input.rest;
 
 
+import java.io.ByteArrayInputStream;
+
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.facturemanagement.application.ports.input.CreateFactureUseCase;
+import com.facturemanagement.application.ports.input.GenerateFacturePDFUseCase;
 import com.facturemanagement.application.ports.input.GetFactureUseCase;
 import com.facturemanagement.application.ports.input.ListFactureUseCase;
 import com.facturemanagement.domain.model.Facture;
 import com.facturemanagement.infraestructure.adapters.input.rest.data.request.FactureCreateRequest;
 import com.facturemanagement.infraestructure.adapters.input.rest.data.request.FactureListRequest;
-import com.facturemanagement.infraestructure.adapters.input.rest.data.response.FactureCreateResponse;
 import com.facturemanagement.infraestructure.adapters.input.rest.data.response.FactureGetResponse;
 import com.facturemanagement.infraestructure.adapters.input.rest.data.response.FactureListResponse;
 import com.facturemanagement.infraestructure.adapters.input.rest.mapper.FactureRestMapper;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -39,21 +45,31 @@ public class FactureRestAdapter {
     private final CreateFactureUseCase createFactureUseCase;
     private final GetFactureUseCase getFactureUseCase;
     private final ListFactureUseCase listFactureUseCase;
+    private final GenerateFacturePDFUseCase generateFacturePDFUseCase;
 
     private final FactureRestMapper factureRestMapper;
 
     @PostMapping("/")
-    public ResponseEntity<FactureCreateResponse> createFacture(@RequestBody @Valid FactureCreateRequest factureCreateRequest) {
+    @CircuitBreaker(name = "external", fallbackMethod = "fallback")
+    public ResponseEntity<InputStreamResource> createFacture(@RequestBody @Valid FactureCreateRequest factureCreateRequest) {
         System.out.println("\nEntrando a petición crear factura\n");
 
         Facture facture = this.factureRestMapper.toFacture(factureCreateRequest);
-        
+
+        byte[] pdfBytes = this.generateFacturePDFUseCase.generetePDFFacture(facture);
+        if (pdfBytes == null || pdfBytes.length == 0) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(null);
+        }
+        ByteArrayInputStream bais = new ByteArrayInputStream(pdfBytes);
+
         facture = this.createFactureUseCase.createFacture(facture);
 
-        //TO DO:
-        //IMPLEMENTAR LA GENERACIÓN DEL PDF DE LA FACTURA
-
-        return new ResponseEntity<>(this.factureRestMapper.toFactureCreateResponse(200, "CREATED"), HttpStatus.OK);
+        return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;"+"filename=facture_"+facture.getFactCode()+".pdf")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .contentLength(pdfBytes.length)
+                    .body(new InputStreamResource(bais));
     }
 
     @GetMapping("/")

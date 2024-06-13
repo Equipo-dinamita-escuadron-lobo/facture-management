@@ -1,8 +1,6 @@
 package com.facturemanagement.infraestructure.adapters.output.persistence;
 
-import java.util.HashSet;
 import java.util.Optional;
-import java.util.Set;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -10,11 +8,10 @@ import org.springframework.data.domain.Pageable;
 import com.facturemanagement.application.ports.output.FactureCreatedOutputPort;
 import com.facturemanagement.application.ports.output.FactureGetOutputPort;
 import com.facturemanagement.domain.model.Facture;
-import com.facturemanagement.domain.model.Product;
 import com.facturemanagement.infraestructure.adapters.output.persistence.entity.FactureEntity;
-import com.facturemanagement.infraestructure.adapters.output.persistence.entity.ProductEntity;
 import com.facturemanagement.infraestructure.adapters.output.persistence.mapper.FacturePersistenceMapper;
 import com.facturemanagement.infraestructure.adapters.output.persistence.repository.FactureRepository;
+import com.facturemanagement.infraestructure.adapters.output.persistence.repository.ProductRepository;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -27,6 +24,7 @@ public class FacturePersistenceAdapter implements FactureCreatedOutputPort, Fact
     private EntityManager entityManager;
 
     private final FactureRepository factureRepository;
+    private final ProductRepository productRepository;
 
     private final FacturePersistenceMapper facturePersistenceMapper;
 
@@ -43,17 +41,22 @@ public class FacturePersistenceAdapter implements FactureCreatedOutputPort, Fact
 
         factureRepository.save(factureEntity);
 
-        return this.facturePersistenceMapper.toFacture(factureEntity);
+        return this.convertToFacture(factureEntity);
     }
 
     @Override
     public Optional<Facture> getFactureById(Long factId) {
         System.out.println("Entrando a getFactureById");
-        Optional<FactureEntity> factureEntity =  this.factureRepository.findById(factId);
-        if(factureEntity.isEmpty()){
+        Optional<FactureEntity> factureOptional =  this.factureRepository.findById(factId);
+        if(factureOptional.isEmpty()){
             return Optional.empty();
         }
-        Facture facture = this.facturePersistenceMapper.toFacture(factureEntity.get());
+
+        FactureEntity factureEntity = factureOptional.get();
+        factureEntity.setFactProducts(this.productRepository.getProductsByFactureId(factId));
+
+        Facture facture = this.facturePersistenceMapper.toFacture(factureEntity);
+
         return Optional.of(facture);
     }
 
@@ -79,6 +82,8 @@ public class FacturePersistenceAdapter implements FactureCreatedOutputPort, Fact
     }
 
     private Facture convertToFacture(FactureEntity factureEntity){
+        System.out.println("\n Entrando a convertir en objeto factura\n");
+        factureEntity.setFactProducts(this.productRepository.getProductsByFactureId(factureEntity.getFactId()));
         return this.facturePersistenceMapper.toFacture(factureEntity);
     }
 }

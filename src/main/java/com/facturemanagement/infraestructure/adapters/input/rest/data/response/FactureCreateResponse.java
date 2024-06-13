@@ -13,5 +13,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class FactureCreateResponse {
     private int code;
+    private byte[] pdf;
     private String status;
 }

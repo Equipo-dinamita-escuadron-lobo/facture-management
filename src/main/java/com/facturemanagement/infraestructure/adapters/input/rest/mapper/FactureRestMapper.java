@@ -13,7 +13,7 @@ import com.facturemanagement.infraestructure.adapters.input.rest.data.response.F
 public interface FactureRestMapper {
     Facture toFacture(FactureCreateRequest factureCreateRequest);
 
-    FactureCreateResponse toFactureCreateResponse(int code, String status);
+    FactureCreateResponse toFactureCreateResponse(int code,byte[] pdf,String status);
 
     FactureListResponse toFactureListResponse(Page<Facture> results);
 

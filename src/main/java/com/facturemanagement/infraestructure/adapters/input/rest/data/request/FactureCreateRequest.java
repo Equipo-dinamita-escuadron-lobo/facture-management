@@ -22,7 +22,7 @@ public class FactureCreateRequest {
     private Long factId;
 
     @NotNull(message = "The enterprise ID cannot be null.")
-    private Long entId;
+    private String entId;
 
     @NotNull(message = "The third-partie ID cannot be null.")
     private Long thId;
