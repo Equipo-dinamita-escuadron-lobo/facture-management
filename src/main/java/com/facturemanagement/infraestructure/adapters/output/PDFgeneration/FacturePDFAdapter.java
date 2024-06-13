@@ -5,6 +5,8 @@ import com.facturemanagement.domain.model.Enterprise;
 import com.facturemanagement.domain.model.Facture;
 import com.facturemanagement.domain.model.Product;
 import com.facturemanagement.domain.model.Third;
+import com.facturemanagement.infraestructure.adapters.security.IJwtUtils;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.itextpdf.io.image.ImageData;
 import com.itextpdf.io.image.ImageDataFactory;
 import com.itextpdf.kernel.color.Color;
@@ -15,9 +17,6 @@ import com.itextpdf.layout.border.Border;
 import com.itextpdf.layout.element.*;
 import com.itextpdf.layout.property.TextAlignment;
 
-import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Value;
-
 import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
@@ -26,6 +25,9 @@ import java.util.Date;
 import java.util.UUID;
 
 import javax.imageio.ImageIO;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
 import java.awt.image.BufferedImage;
 
 import java.io.ByteArrayInputStream;
@@ -38,11 +40,8 @@ import java.util.Random;
 
 public class FacturePDFAdapter implements FactureGeneratePDFOutputPort{
 
-    private String token;
-    @Value("${env.user}")
-    private String user;
-    @Value("${env.password}")
-    private String password;
+    @Autowired
+    private IJwtUtils jwtUtils;
 
     private HttpRequest request = new HttpRequest();
     private Random random = new Random();
@@ -77,7 +76,6 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort{
 
         NumberFormat currencyFormat = NumberFormat.getCurrencyInstance();
         
-        this.setToken(this.tokenData());
         Enterprise enterprise =  this.enterpriseData(facture);
         Third third = this.thirdData(facture);
 
@@ -172,7 +170,7 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort{
             itemTable.addCell(new Cell().add(new Paragraph(currencyFormat.format((p.getAmount()*p.getUnitPrice())))));
         }
 
-        itemTable.addCell(new Cell().add(boldText("Cantidad Total: ",currencyFormat.format(facture.getFactProducts().size()))));
+        itemTable.addCell(new Cell().add(boldText("Cantidad Total: ",facture.getFactProducts().size()+"")));
         document.add(itemTable);
         document.add(new Paragraph(" "));
         document.add(new Paragraph(" "));
@@ -192,66 +190,42 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort{
 
         document.add(new Paragraph(" "));
 
-        document.add(new Paragraph("**FACTURA GENERADA CON FINES EDUCATIVOS, NO TIENE NINGUN VALOR**").setFontColor(Color.RED).setTextAlignment(TextAlignment.CENTER));
+        document.add(new Paragraph("**FACTURA GENERADA CON FINES EDUCATIVOS, NO TIENE NINGUN VALOR LEGAL**").setFontColor(Color.RED).setTextAlignment(TextAlignment.CENTER));
 
         document.close();
 
         return baos.toByteArray();
     }
 
-    private String tokenData(){
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("username", this.user);
-        jsonObject.put("password", this.password);
-        try{
-            JSONObject json = this.request.makePostRequest("http://contables.unicauca.edu.co/keycloak/token/", jsonObject);
-            return json.getString("access_token");
-        }catch(IOException e){
-            System.out.println(e.getMessage());
-            return "";
-        }
-    }
-
     private Enterprise enterpriseData(Facture facture){
-        try{
-            JSONObject jsonResult = this.request.makeGetRequest("http://contables.unicauca.edu.co/api/enterprises/enterprise/" + facture.getEntId(),this.getToken());
-            String contact = jsonResult.getString("email") + " - " + jsonResult.getString("phone");
-            return new Enterprise(
-                jsonResult.getString("name"),
-                "Ficticia",
-                jsonResult.getString("nit"),
-                contact,
-                jsonResult.getString("logo")
-            );
-        }catch(IOException e){
-            System.out.println(e.getMessage());
-            return null;
-        }
+        JsonNode jsonResult = this.request.getRequest("http://contables.unicauca.edu.co/api/enterprises/enterprise/" + facture.getEntId(),jwtUtils);
+        String contact = jsonResult.get("email").asText() + " - " + jsonResult.get("phone").asText();
+        return new Enterprise(
+            jsonResult.get("name").asText(),
+            "Ficticia",
+            jsonResult.get("nit").asText(),
+            contact,
+            jsonResult.get("logo").asText()
+        );
     }
 
     private Third thirdData(Facture facture){
-        try{
-            JSONObject jsonResult = this.request.makeGetRequest("http://contables.unicauca.edu.co/api/thirds/third?thId="+facture.getThId(),this.getToken());
-            System.out.println("\n"+jsonResult+"\n");
-            JSONObject typeIDJson = jsonResult.getJSONObject("typeId");
-            return new Third(
-                jsonResult.getLong("verificationNumber"),
-                typeIDJson.getString("typeId"),
-                jsonResult.getLong("idNumber"),
-                jsonResult.getString("names"),
-                jsonResult.getString("lastNames"),
-                jsonResult.getString("address"),
-                jsonResult.getString("country"),
-                jsonResult.getString("province"),
-                jsonResult.getString("city"),
-                jsonResult.getString("phoneNumber"),
-                jsonResult.getString("email"),
-                jsonResult.getString("personType")
-            );
-        }catch(IOException e){
-            System.out.println(e.getMessage());
-            return null;
-        }
+        JsonNode jsonResult = this.request.getRequest("http://contables.unicauca.edu.co/api/thirds/third?thId="+facture.getThId(),jwtUtils);
+        JsonNode typeIDJson = jsonResult.get("typeId");
+        return new Third(
+            jsonResult.get("verificationNumber").asLong(),
+            typeIDJson.get("typeId").asText(),
+            jsonResult.get("idNumber").asLong(),
+            jsonResult.get("names").asText(),
+            jsonResult.get("lastNames").asText(),
+            jsonResult.get("address").asText(),
+            jsonResult.get("country").asText(),
+            jsonResult.get("province").asText(),
+            jsonResult.get("city").asText(),
+            jsonResult.get("phoneNumber").asText(),
+            jsonResult.get("email").asText(),
+            jsonResult.get("personType").asText()
+        );
     }
 
     private String generateCUFE (){
@@ -267,13 +241,5 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort{
         paragraph.add(textbold);
         paragraph.add(textNormal);
         return paragraph;
-    }
-
-    private String getToken(){
-        return this.token;
-    }
-
-    private void setToken(String token){
-        this.token = token;
     }
 }

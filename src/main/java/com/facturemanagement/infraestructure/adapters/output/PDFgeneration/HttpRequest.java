@@ -1,96 +1,42 @@
 package com.facturemanagement.infraestructure.adapters.output.PDFgeneration;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.URI;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
 
-import org.json.JSONObject;
+import com.facturemanagement.infraestructure.adapters.security.IJwtUtils;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class HttpRequest {
 
-    public JSONObject makeGetRequest(String url, String token) throws IOException {
-        HttpURLConnection connection = null;
-        BufferedReader reader = null;
-        StringBuilder response = new StringBuilder();
+    public JsonNode getRequest(String url,IJwtUtils jwtUtils){
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
 
+        headers.add(HttpHeaders.AUTHORIZATION, "Bearer "+ jwtUtils.getToken());
+        HttpEntity<String> entity = new HttpEntity<>( headers);
+        ResponseEntity<String> response = restTemplate.exchange(
+            URI.create(url),
+            HttpMethod.GET,
+            entity,
+            String.class
+        );
+
+        ObjectMapper objectMapper = new ObjectMapper();
         try {
-            URL apiUrl = new URL(url);
-            connection = (HttpURLConnection) apiUrl.openConnection();
-            connection.setRequestMethod("GET");
+            // Leer el JSON como un objeto JsonNode
+            JsonNode jsonNode = objectMapper.readTree(response.getBody());
 
-            // Agregar el encabezado de autorización
-            connection.setRequestProperty("Authorization", "Bearer " + token);
-
-            reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                response.append(line);
-            }
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (connection != null) {
-                connection.disconnect();
-            }
-        }
-
-        System.out.println(response.toString());
-
-        return new JSONObject(response.toString());
-    }
-
-    public JSONObject makePostRequest(String apiUrl, JSONObject jsonInput) throws IOException {
-        HttpURLConnection connection = null;
-        BufferedReader reader = null;
-        StringBuilder response = new StringBuilder();
-
-        try {
-            // Crear la URL de la solicitud
-            URL url = new URL(apiUrl);
-
-            // Abrir conexión HTTP
-            connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("POST");
-            connection.setRequestProperty("Content-Type", "application/json; utf-8");
-            connection.setRequestProperty("Accept", "application/json");
-            connection.setDoOutput(true);
-
-            // Escribir el cuerpo de la solicitud
-            try (OutputStream os = connection.getOutputStream()) {
-                byte[] input = jsonInput.toString().getBytes("utf-8");
-                os.write(input, 0, input.length);
-            }
-
-            // Leer la respuesta
-            reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), "utf-8"));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                response.append(line.trim());
-            }
-
-            // Convertir la respuesta a JSON
-            return new JSONObject(response.toString());
-
-        } finally {
-            // Cerrar conexiones y recursos
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (connection != null) {
-                connection.disconnect();
-            }
+            // Puedes manipular el JsonNode según tus necesidades
+            return jsonNode;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
         }
     }
 }

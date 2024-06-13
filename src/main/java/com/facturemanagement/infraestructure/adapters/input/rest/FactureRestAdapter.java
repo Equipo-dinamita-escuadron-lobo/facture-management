@@ -25,6 +25,7 @@ import com.facturemanagement.infraestructure.adapters.input.rest.data.response.F
 import com.facturemanagement.infraestructure.adapters.input.rest.data.response.FactureListResponse;
 import com.facturemanagement.infraestructure.adapters.input.rest.mapper.FactureRestMapper;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -49,12 +50,11 @@ public class FactureRestAdapter {
     private final FactureRestMapper factureRestMapper;
 
     @PostMapping("/")
+    @CircuitBreaker(name = "external", fallbackMethod = "fallback")
     public ResponseEntity<InputStreamResource> createFacture(@RequestBody @Valid FactureCreateRequest factureCreateRequest) {
         System.out.println("\nEntrando a petición crear factura\n");
 
         Facture facture = this.factureRestMapper.toFacture(factureCreateRequest);
-        
-        facture = this.createFactureUseCase.createFacture(facture);
 
         byte[] pdfBytes = this.generateFacturePDFUseCase.generetePDFFacture(facture);
         if (pdfBytes == null || pdfBytes.length == 0) {
@@ -62,6 +62,8 @@ public class FactureRestAdapter {
                     .body(null);
         }
         ByteArrayInputStream bais = new ByteArrayInputStream(pdfBytes);
+
+        facture = this.createFactureUseCase.createFacture(facture);
 
         return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;"+"filename=facture_"+facture.getFactCode()+".pdf")
