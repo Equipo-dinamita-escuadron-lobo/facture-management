@@ -4,10 +4,10 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.facturemanagement.domain.service.CreateFactureService;
-import com.facturemanagement.domain.service.GeneratedPDFFactureService;
-import com.facturemanagement.domain.service.GetFactureService;
-import com.facturemanagement.domain.service.ListFacturesService;
+import com.facturemanagement.application.service.CreateFactureService;
+import com.facturemanagement.application.service.GeneratedPDFFactureService;
+import com.facturemanagement.application.service.GetFactureService;
+import com.facturemanagement.application.service.ListFacturesService;
 import com.facturemanagement.infraestructure.adapters.output.PDFgeneration.FacturePDFAdapter;
 import com.facturemanagement.infraestructure.adapters.output.eventpublisher.FactureEventPublisherAdapter;
 import com.facturemanagement.infraestructure.adapters.output.persistence.FacturePersistenceAdapter;

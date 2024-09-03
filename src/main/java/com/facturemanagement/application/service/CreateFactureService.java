@@ -1,4 +1,4 @@
-package com.facturemanagement.domain.service;
+package com.facturemanagement.application.service;
 
 import com.facturemanagement.application.ports.input.CreateFactureUseCase;
 import com.facturemanagement.application.ports.output.FactureCreatedOutputPort;
