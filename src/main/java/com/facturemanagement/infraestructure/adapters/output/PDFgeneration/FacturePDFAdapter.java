@@ -76,6 +76,10 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
                         return generateInvoiceSalePdf(facture);
                 }
 
+                /*Si es factura de compra con esto se valida el descuento */
+                if(facture.getDescounts()==null){ 
+                        facture.setDescounts(0.0);
+                }
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 PdfWriter writer = new PdfWriter(baos);
                 PdfDocument pdfDoc = new PdfDocument(writer);
@@ -149,7 +153,7 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
                 Table invoiceDetails = new Table(2);
                 invoiceDetails.setWidthPercent(100);
                 invoiceDetails.addCell(new Cell().add(boldText("FECHA DE EMISIÓN: ", String.valueOf(LocalDate.now()))));
-                invoiceDetails.addCell(new Cell().add(boldText("AUT. NUMERACIÓN FAC: ", facture.getFactCode())));
+                invoiceDetails.addCell(new Cell().add(boldText("AUT. NUMERACIÓN FAC: ", facture.getFactCode().toString())));
                 invoiceDetails.addCell(new Cell().add(boldText("HORA DE EMISIÓN: ", dateFormat.format(date))));
                 invoiceDetails.addCell(new Cell().add(boldText("FECHA DE VENCIMIENTO: ", formattedExpirationDate)));
                 document.add(invoiceDetails);
@@ -238,6 +242,9 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
         }
 
         private byte[] generateInvoiceSalePdf(Facture facture) throws IOException {
+                if(facture.getDescounts()==null){ 
+                        facture.setDescounts(0.0);
+                }
                 NumberFormat currencyFormat = NumberFormat.getCurrencyInstance();
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 PdfWriter writer = new PdfWriter(baos);
@@ -285,7 +292,7 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
                                 .add(new Text("\nContacto: ").setBold())
                                 .add(enterprise.getEntContact())
                                 .add(new Text("\nFactura de Venta No IND ").setBold())
-                                .add(facture.getFactCode())
+                                .add(facture.getFactCode().toString())
                                 .setTextAlignment(TextAlignment.LEFT);
 
                 headerTable.addCell(new Cell().add(enterpriseInfo).setBorder(Border.NO_BORDER));
@@ -339,7 +346,7 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
                 facturaDetails.setWidthPercent(100);
 
                 facturaDetails.addCell(new Cell()
-                                .add(new Paragraph("FACTURA VENTA NO IND" + facture.getFactCode()).setBold()
+                                .add(new Paragraph("FACTURA VENTA NO IND " + facture.getFactCode().toString()).setBold()
                                                 .setTextAlignment(TextAlignment.CENTER))
                                 .add(new Paragraph("Fecha y Hora de Factura: " + LocalDate.now().toString()))
                                 .add(new Paragraph("Expedición: " + dateFormat.format(date)))
@@ -408,15 +415,15 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
                 // fila
                 summaryTable.addCell(new Cell().add(new Paragraph(currencyFormat.format(facture.getFactSubtotals())))
                                 .setTextAlignment(TextAlignment.CENTER));
-                //Hay que modificar el DTO para que se pueda obtener el valor de los descuentos, por lo tanto tambien la bd
-                summaryTable.addCell(new Cell().add(new Paragraph(currencyFormat.format(0)))
+
+                summaryTable.addCell(new Cell().add(new Paragraph(currencyFormat.format(facture.getDescounts())))
                                 .setTextAlignment(TextAlignment.CENTER));
                 summaryTable.addCell(
                                 new Cell().add(new Paragraph(currencyFormat.format(facture.getFacSalesTax())))
                                                 .setTextAlignment(TextAlignment.CENTER));
                 summaryTable.addCell(new Cell()
                                 .add(new Paragraph(currencyFormat
-                                                .format(facture.getFactSubtotals() + facture.getFacSalesTax() - 0)))
+                                                .format(facture.getFactSubtotals() + facture.getFacSalesTax() - facture.getDescounts())))
                                 .setTextAlignment(TextAlignment.CENTER));
                 summaryTable.addCell(
                                 new Cell().add(new Paragraph(currencyFormat.format(facture.getFacWithholdingSource())))
@@ -425,7 +432,7 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
                 summaryTable.addCell(new Cell()
                                 .add(new Paragraph(currencyFormat
                                                 .format(facture.getFactSubtotals() + facture.getFacSalesTax()
-                                                                - facture.getFacWithholdingSource())))
+                                                                - facture.getFacWithholdingSource() - facture.getDescounts())))
                                 .setTextAlignment(TextAlignment.CENTER));
 
                 // Agregar la tabla de resumen al documento
@@ -442,6 +449,7 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
                                 .add(new Paragraph("Observaciones:").setBold())
                                 .add(new Paragraph(
                                                 // Agregar las observaciones de la factura, tiene que ser guardarce en la bd
+                                                facture.getFactObservations()
                                                 ))
                                 .setPadding(10) // Espaciado interno en la celda
                                 .setBorder(new SolidBorder(1)) // Borde sólido de grosor 1
@@ -510,7 +518,7 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
                 String contact = jsonResult.get("email").asText() + " - " + jsonResult.get("phone").asText();
                 return new Enterprise(
                                 jsonResult.get("name").asText(),
-                                "Ficticia",
+                                "Calle 12 # 12-12",
                                 jsonResult.get("nit").asText(),
                                 contact,
                                 jsonResult.get("logo").asText());
@@ -578,7 +586,7 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
                                 + getFormattedDate() + " Prefijo " + prefijoFacture(facture)
                                 + " desde el número 00001 al 40000 Vigencia: 12 Meses\n" +
                                 "Responsable de IVA - Actividad Económica " + generateNumberAleatory(4) + "\n" +
-                                generateNumberAleatory(37) + "\n" +
+                                generateNumberAleatory(37) + " Tarifa 4.14\n" +
                                 "CUFE: " + generateCUFE() + "\n";
                 return textoFacture;
         }

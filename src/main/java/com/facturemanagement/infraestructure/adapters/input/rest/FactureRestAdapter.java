@@ -49,23 +49,26 @@ public class FactureRestAdapter {
     @PostMapping("/")
     @CircuitBreaker(name = "external", fallbackMethod = "fallback")
     public ResponseEntity<InputStreamResource> createFacture(
-            @RequestBody @Valid FactureCreateRequest factureCreateRequest) {
+        
+        @RequestBody @Valid FactureCreateRequest factureCreateRequest) {
         //System.out.println("\nEntrando a petición crear factura de venta\n");
 
         Facture facture = this.factureRestMapper.toFacture(factureCreateRequest);
-
+        
         byte[] pdfBytes = this.generateFacturePDFUseCase.generetePDFFacture(facture);
         if (pdfBytes == null || pdfBytes.length == 0) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(null);
         }
+        facture = this.createFactureUseCase.createFacture(facture);
+        pdfBytes = this.generateFacturePDFUseCase.generetePDFFacture(facture);
         ByteArrayInputStream bais = new ByteArrayInputStream(pdfBytes);
 
-        facture = this.createFactureUseCase.createFacture(facture);
+        
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment;" + "filename=facture_" + facture.getFactCode() + ".pdf")
+                        "attachment;" + "filename=facture_" + facture.getFactCode().toString() + ".pdf")
                 .contentType(MediaType.APPLICATION_PDF)
                 .contentLength(pdfBytes.length)
                 .body(new InputStreamResource(bais));

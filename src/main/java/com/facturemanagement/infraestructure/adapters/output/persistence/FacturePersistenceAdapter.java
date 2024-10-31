@@ -34,6 +34,11 @@ public class FacturePersistenceAdapter implements FactureCreatedOutputPort, Fact
     private final FacturePersistenceMapper facturePersistenceMapper;
 
     @Override
+    public Long findMaxFactCode() {
+        return factureRepository.findMaxFactCode(); // Implement your logic to get the max factCode
+    }
+
+    @Override
     @Transactional
     public Facture saveFacture(Facture facture) {
         System.out.println("Entrando a saveFacture");

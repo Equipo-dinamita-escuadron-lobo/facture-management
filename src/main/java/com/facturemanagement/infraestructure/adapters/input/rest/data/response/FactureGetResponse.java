@@ -20,8 +20,10 @@ import lombok.Setter;
 public class FactureGetResponse {
     private Long factId;
     private Long thId;
-    private String factCode;
+    private Long factCode;
     private eFactureType factureType;
+    private String factObservations;
+    private Double descounts;
     private Set<Product> factProducts;
     private Double factSubtotals;
     private Double facSalesTax;

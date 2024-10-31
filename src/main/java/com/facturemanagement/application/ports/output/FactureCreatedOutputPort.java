@@ -4,4 +4,5 @@ import com.facturemanagement.domain.model.Facture;
 
 public interface FactureCreatedOutputPort {
     Facture saveFacture(Facture facture);
+    Long findMaxFactCode();
 }

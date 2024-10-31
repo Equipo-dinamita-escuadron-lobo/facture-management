@@ -28,7 +28,7 @@ public class FactureCreateRequest {
     private Long thId;
     
     @NotNull(message = "The facture code cannot be null.")
-    private String factCode;
+    private Long factCode;
     
     @NotNull(message = "The facture type cannot be null.")
     private eFactureType factureType;
@@ -44,6 +44,9 @@ public class FactureCreateRequest {
     
     @NotNull(message = "The withholding tax cannot be null.")
     private Double facWithholdingSource;
+    
+    @NotNull(message = "The observations cannot be null.")
+    private String factObservations;
 
     private LocalDate creationDate;
     private LocalDate updateDate;

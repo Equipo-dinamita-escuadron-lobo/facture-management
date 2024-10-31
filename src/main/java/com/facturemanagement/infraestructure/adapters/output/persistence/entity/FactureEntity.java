@@ -46,8 +46,15 @@ public class FactureEntity {
     @Column(name="th_id")
     private Long thId;
 
-    @Column(name="fact_code")
-    private String factCode;
+    @Column(name="fact_code", unique = true)
+    private Long factCode;
+
+  
+    
+    
+
+    @Column(name="fact_observations")
+    private String factObservations;
 
     @Enumerated(EnumType.STRING)
     @Column(name="fact_type")
@@ -71,6 +78,9 @@ public class FactureEntity {
     @Column(name="fact_withholding_source")
     private Double facWithholdingSource;
     
+    @Column(name="descounts")
+    private Double descounts;
+
     @Column(name="fact_created_at")
     @CreationTimestamp
     private LocalDateTime creationDate;

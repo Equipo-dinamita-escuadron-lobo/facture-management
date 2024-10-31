@@ -12,6 +12,9 @@ import com.facturemanagement.infraestructure.adapters.output.persistence.entity.
 @Repository
 public interface FactureRepository extends JpaRepository<FactureEntity, Long> {
     
+    @Query("SELECT MAX(f.factCode) FROM FactureEntity f")
+    Long findMaxFactCode(); // This method returns the maximum factCode
+    
     @EntityGraph(attributePaths = "factProducts")
     @Query("SELECT f FROM FactureEntity f WHERE f.entId LIKE :entId")
     Page<FactureEntity> findAllByEnterpriseId(String entId, Pageable pageable);

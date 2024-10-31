@@ -18,10 +18,12 @@ public class Facture {
     private Long factId;
     private String entId;
     private Long thId;
-    private String factCode;
+    private Long factCode;
+    private String factObservations;
     @Enumerated(EnumType.STRING)
     private eFactureType factureType;
     private Set<Product> factProducts;
+    private Double descounts; 
     private Double factSubtotals;
     private Double facSalesTax;
     private Double facWithholdingSource;
