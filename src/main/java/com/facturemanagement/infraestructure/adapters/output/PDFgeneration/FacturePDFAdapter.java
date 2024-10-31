@@ -14,10 +14,12 @@ import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
 import com.itextpdf.layout.border.Border;
+import com.itextpdf.layout.border.SolidBorder;
 import com.itextpdf.layout.element.*;
 import com.itextpdf.layout.property.HorizontalAlignment;
 import com.itextpdf.layout.property.TextAlignment;
 import com.itextpdf.layout.property.UnitValue;
+import com.itextpdf.layout.property.VerticalAlignment;
 import com.google.zxing.qrcode.QRCodeWriter;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.common.BitMatrix;
@@ -68,6 +70,7 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
                         return null;
                 }
         }
+
         private byte[] generateInvoicePdf(Facture facture) throws IOException {
                 if (facture.getFactureType().toString().equals("Venta")) {
                         return generateInvoiceSalePdf(facture);
@@ -272,13 +275,17 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
                 }
 
                 Paragraph enterpriseInfo = new Paragraph()
-                                .add(new Text(enterprise.getEntName()).setBold())
-                                .add("\nDireccion: " + enterprise.getEntAddress() + ", " + enterprise.getEntAddress())
-                                .add("\nNIT: " + enterprise.getEntNIT() + "-" + enterprise.getEntNIT())
-                                .add("\nContacto: " + enterprise.getEntContact())
-                                .add("\nFecha y hora de emisión: " + dateFormat.format(date))
-                                .add("\nFecha de vencimiento: " + dateFormat.format(date))
-                                .add("\nFactura Electrónica de Venta No IND " + facture.getFactCode())
+                                .add(new Text(enterprise.getEntName()).setBold().setFontSize(14)) // Aumenta el tamaño
+                                                                                                  // de la letra del
+                                                                                                  // nombre
+                                .add(new Text("\nDirección: ").setBold())
+                                .add(enterprise.getEntAddress() + ", Colombia")
+                                .add(new Text("\nNIT: ").setBold())
+                                .add(enterprise.getEntNIT() + "-" + calcularDigitoVerificacion(enterprise.getEntNIT()))
+                                .add(new Text("\nContacto: ").setBold())
+                                .add(enterprise.getEntContact())
+                                .add(new Text("\nFactura de Venta No IND ").setBold())
+                                .add(facture.getFactCode())
                                 .setTextAlignment(TextAlignment.LEFT);
 
                 headerTable.addCell(new Cell().add(enterpriseInfo).setBorder(Border.NO_BORDER));
@@ -288,18 +295,64 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
 
                 document.add(new Paragraph(" ")); // Espacio entre secciones
 
-                // Tabla detalles del cliente
+                // Título de la sección
                 document.add(new Paragraph("DATOS DEL CLIENTE").setTextAlignment(TextAlignment.CENTER).setBold());
-                Table clientDetails = new Table(2);
+
+                // Tabla principal que contiene las dos tablas internas
+                Table mainTable = new Table(new float[] { 8, 2 }); // Dos columnas de diferente tamaño
+                mainTable.setWidthPercent(100);
+
+                // Primera tabla: detalles del cliente
+                Table clientDetails = new Table(new float[] { 1, 2 }); // Una columna para títulos y otra para datos
                 clientDetails.setWidthPercent(100);
-                clientDetails.addCell(new Cell().add(new Paragraph("TIPO DE DOCUMENTO: " + third.getTypeId())));
-                clientDetails.addCell(new Cell().add(new Paragraph("NÚMERO DE DOCUMENTO: " + third.getIdNumber())));
-                clientDetails.addCell(new Cell().add(
-                                new Paragraph("NOMBRE DE CLIENTE: " + third.getNames() + " " + third.getLastNames())));
-                clientDetails.addCell(new Cell().add(new Paragraph("CORREO: " + third.getEmail())));
-                clientDetails.addCell(new Cell().add(new Paragraph("DIRECCIÓN DEL CLIENTE: " + third.getAddress())));
-                clientDetails.addCell(new Cell().add(new Paragraph("CIUDAD: " + third.getCity())));
-                document.add(clientDetails);
+                clientDetails.setHeight(100);
+
+                // Agrega las celdas de información del cliente en dos columnas (título
+                // sombreado y datos)
+                clientDetails.addCell(new Cell().add(new Paragraph("Cliente:").setBold())
+                                .setBackgroundColor(Color.LIGHT_GRAY));
+                clientDetails.addCell(new Cell().add(new Paragraph(third.getNames() + " " + third.getLastNames())));
+
+                clientDetails.addCell(new Cell().add(new Paragraph("NIT:").setBold())
+                                .setBackgroundColor(Color.LIGHT_GRAY));
+                clientDetails.addCell(new Cell().add(new Paragraph(third.getPhoneNumber())));
+
+                clientDetails.addCell(new Cell().add(new Paragraph("Dirección:").setBold())
+                                .setBackgroundColor(Color.LIGHT_GRAY));
+                clientDetails.addCell(new Cell().add(new Paragraph(third.getAddress())));
+
+                clientDetails.addCell(new Cell().add(new Paragraph("Ciudad:").setBold())
+                                .setBackgroundColor(Color.LIGHT_GRAY));
+                clientDetails.addCell(new Cell().add(new Paragraph(third.getCity())));
+
+                clientDetails.addCell(new Cell().add(new Paragraph("Teléfono:").setBold())
+                                .setBackgroundColor(Color.LIGHT_GRAY));
+                clientDetails.addCell(new Cell().add(new Paragraph(third.getPhoneNumber())));
+
+                clientDetails.addCell(new Cell().add(new Paragraph("Correo:").setBold())
+                                .setBackgroundColor(Color.LIGHT_GRAY));
+                clientDetails.addCell(new Cell().add(new Paragraph(third.getEmail())));
+
+                // Segunda tabla: información de la factura
+                Table facturaDetails = new Table(1);
+                facturaDetails.setHeight(100);
+                facturaDetails.setWidthPercent(100);
+
+                facturaDetails.addCell(new Cell()
+                                .add(new Paragraph("FACTURA VENTA NO IND" + facture.getFactCode()).setBold()
+                                                .setTextAlignment(TextAlignment.CENTER))
+                                .add(new Paragraph("Fecha y Hora de Factura: " + LocalDate.now().toString()))
+                                .add(new Paragraph("Expedición: " + dateFormat.format(date)))
+                                .add(new Paragraph("Vencimiento: " + dateFormat.format(date)))
+                                .setTextAlignment(TextAlignment.LEFT)
+                                .setVerticalAlignment(VerticalAlignment.MIDDLE));
+
+                // Alinea ambas tablas en la tabla principal
+                mainTable.addCell(new Cell().add(clientDetails).setBorder(Border.NO_BORDER));
+                mainTable.addCell(new Cell().add(facturaDetails).setBorder(Border.NO_BORDER));
+
+                // Añade la tabla contenedora al documento
+                document.add(mainTable);
 
                 // Productos
                 document.add(new Paragraph("PRODUCTOS").setTextAlignment(TextAlignment.CENTER).setBold());
@@ -317,41 +370,58 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
                                 .setBackgroundColor(Color.LIGHT_GRAY));
 
                 for (Product p : facture.getFactProducts()) {
-                        itemTable.addCell(new Cell().add(new Paragraph(String.valueOf(p.getAmount()))));
+                        itemTable.addCell(new Cell().add(new Paragraph(p.getAmount() + "")));
                         itemTable.addCell(new Cell().add(new Paragraph(p.getDescription())));
                         itemTable.addCell(new Cell().add(new Paragraph((p.getVat() * 100) + "%")));
                         itemTable.addCell(new Cell().add(new Paragraph(currencyFormat.format(p.getUnitPrice()))));
                         itemTable.addCell(new Cell()
-                                        .add(new Paragraph(currencyFormat.format(p.getAmount() * p.getUnitPrice()))));
+                                        .add(new Paragraph(currencyFormat.format((p.getAmount() * p.getUnitPrice())))));
                 }
+
+                itemTable.addCell(new Cell().add(boldText("Cantidad Total: ", facture.getFactProducts().size() + "")));
                 document.add(itemTable);
+                document.add(new Paragraph(" "));
+                document.add(new Paragraph(" "));
 
                 // Título de la sección de totales
                 document.add(new Paragraph("RESUMEN DE LA FACTURA").setTextAlignment(TextAlignment.CENTER).setBold());
 
                 // Crear una tabla con tres columnas para mostrar los totales en una sola fila
-                Table summaryTable = new Table(4); // Cuatro columnas
+                Table summaryTable = new Table(6); // Cuatro columnas
                 summaryTable.setWidthPercent(100);
 
                 // Agregar las celdas de subtotales, impuestos y total en una sola fila
-                summaryTable.addCell(new Cell().add(new Paragraph("SUBTOTAL").setBold())
+                summaryTable.addCell(new Cell().add(new Paragraph("VALOR BRUTO").setBold())
                                 .setBackgroundColor(Color.LIGHT_GRAY).setTextAlignment(TextAlignment.CENTER));
-                summaryTable.addCell(new Cell().add(new Paragraph("IMPUESTOS").setBold())
+                summaryTable.addCell(new Cell().add(new Paragraph("VALOR DESCUENTOS").setBold())
                                 .setBackgroundColor(Color.LIGHT_GRAY).setTextAlignment(TextAlignment.CENTER));
-                summaryTable.addCell(new Cell().add(new Paragraph("RETENCIÓN EN LA FUENTE").setBold())
+                summaryTable.addCell(new Cell().add(new Paragraph("VALOR IMPUESTOS").setBold())
                                 .setBackgroundColor(Color.LIGHT_GRAY).setTextAlignment(TextAlignment.CENTER));
-                summaryTable.addCell(new Cell().add(new Paragraph("TOTAL A PAGAR").setBold())
+                summaryTable.addCell(new Cell().add(new Paragraph("VALOR NETO").setBold())
+                                .setBackgroundColor(Color.LIGHT_GRAY).setTextAlignment(TextAlignment.CENTER));
+                summaryTable.addCell(new Cell().add(new Paragraph("VALOR RETENCIÓN").setBold())
+                                .setBackgroundColor(Color.LIGHT_GRAY).setTextAlignment(TextAlignment.CENTER));
+                summaryTable.addCell(new Cell().add(new Paragraph("VALOR DOCUMENTO").setBold())
                                 .setBackgroundColor(Color.LIGHT_GRAY).setTextAlignment(TextAlignment.CENTER));
 
                 // Agregar los valores correspondientes debajo de cada encabezado en la misma
                 // fila
                 summaryTable.addCell(new Cell().add(new Paragraph(currencyFormat.format(facture.getFactSubtotals())))
                                 .setTextAlignment(TextAlignment.CENTER));
-                summaryTable.addCell(new Cell().add(new Paragraph(currencyFormat.format(facture.getFacSalesTax())))
+                //Hay que modificar el DTO para que se pueda obtener el valor de los descuentos, por lo tanto tambien la bd
+                summaryTable.addCell(new Cell().add(new Paragraph(currencyFormat.format(0)))
+                                .setTextAlignment(TextAlignment.CENTER));
+                summaryTable.addCell(
+                                new Cell().add(new Paragraph(currencyFormat.format(facture.getFacSalesTax())))
+                                                .setTextAlignment(TextAlignment.CENTER));
+                summaryTable.addCell(new Cell()
+                                .add(new Paragraph(currencyFormat
+                                                .format(facture.getFactSubtotals() + facture.getFacSalesTax() - 0)))
                                 .setTextAlignment(TextAlignment.CENTER));
                 summaryTable.addCell(
                                 new Cell().add(new Paragraph(currencyFormat.format(facture.getFacWithholdingSource())))
                                                 .setTextAlignment(TextAlignment.CENTER));
+
                 summaryTable.addCell(new Cell()
                                 .add(new Paragraph(currencyFormat
                                                 .format(facture.getFactSubtotals() + facture.getFacSalesTax()
@@ -360,6 +430,25 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
 
                 // Agregar la tabla de resumen al documento
                 document.add(summaryTable);
+
+                document.add(new Paragraph(" "));
+
+                // Tabla para el campo de Observaciones
+                Table observationsTable = new Table(1); // Tabla de una sola columna
+                observationsTable.setWidthPercent(100); // Configura la tabla al 100% del ancho
+
+                // Celda de Observaciones
+                observationsTable.addCell(new Cell()
+                                .add(new Paragraph("Observaciones:").setBold())
+                                .add(new Paragraph(
+                                                // Agregar las observaciones de la factura, tiene que ser guardarce en la bd
+                                                ))
+                                .setPadding(10) // Espaciado interno en la celda
+                                .setBorder(new SolidBorder(1)) // Borde sólido de grosor 1
+                );
+
+                // Añadir la tabla de observaciones al documento
+                document.add(observationsTable);
 
                 document.add(new Paragraph(" "));
 
@@ -377,8 +466,12 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
 
                         // Generar la imagen del código QR y agregarla en la segunda columna
                         Image qrCodeImage = generateQRCodeImage(
-                                        "https://www.youtube.com/watch?v=wohwc9MQt6A&ab_channel=BryantMyers"); // Cambiar url por la de la dian
-                                                                                                               
+                                        "https://www.youtube.com/watch?v=wohwc9MQt6A&ab_channel=BryantMyers"); // Cambiar
+                                                                                                               // url
+                                                                                                               // por la
+                                                                                                               // de la
+                                                                                                               // dian
+
                         table.addCell(new Cell().add(qrCodeImage.setHorizontalAlignment(HorizontalAlignment.CENTER)));
 
                         // Agregar la tabla al documento
@@ -421,6 +514,30 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
                                 jsonResult.get("nit").asText(),
                                 contact,
                                 jsonResult.get("logo").asText());
+        }
+
+        private int calcularDigitoVerificacion(String nit) {
+                // Factores según la posición (de derecha a izquierda)
+                int[] factores = { 71, 67, 59, 53, 47, 43, 41, 37, 29, 23, 19, 17, 13, 7, 3 };
+                int suma = 0;
+
+                // Iteramos sobre el NIT desde el último dígito hasta el primero
+                for (int i = 0; i < nit.length(); i++) {
+                        // Obtenemos el dígito actual de derecha a izquierda
+                        int digito = Character.getNumericValue(nit.charAt(nit.length() - 1 - i));
+                        // Multiplicamos el dígito por el factor correspondiente y sumamos
+                        suma += digito * factores[i];
+                }
+
+                // Calculamos el residuo de la división de la suma por 11
+                int residuo = suma % 11;
+
+                // Regla para determinar el dígito de verificación
+                if (residuo == 0 || residuo == 1) {
+                        return residuo;
+                } else {
+                        return 11 - residuo;
+                }
         }
 
         private String generateNumberAleatory(int n) {
@@ -496,7 +613,7 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
                         hexCode.append(String.format("%02x", randomValue)); // Lo convierte a hexadecimal de 2 dígitos
                 }
 
-                return hexCode.substring(0, length); 
+                return hexCode.substring(0, length);
         }
 
         // Funcion que recibe 2 String para hacer un parrafo con uno de ellos en negrita
