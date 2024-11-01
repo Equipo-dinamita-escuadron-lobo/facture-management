@@ -88,6 +88,7 @@ public class FactureRestAdapter {
                     .body(null);
         }
 
+
         
         ByteArrayInputStream bais = new ByteArrayInputStream(pdfBytes);
 
