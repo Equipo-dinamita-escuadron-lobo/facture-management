@@ -1,5 +1,6 @@
 package com.facturemanagement.application.service;
 
+
 import com.facturemanagement.application.ports.input.GenerateFacturePDFUseCase;
 import com.facturemanagement.application.ports.output.FactureGeneratePDFOutputPort;
 import com.facturemanagement.domain.event.FacturePDFGeneratedEvent;
@@ -18,6 +19,12 @@ public class GeneratedPDFFactureService implements GenerateFacturePDFUseCase{
     public byte[] generetePDFFacture(Facture facture) {
         byte[] result = factureGeneratePDFOutputPort.generatePDF(facture);
         factureEventPublisher.publishFactureGeneratePDFEvent(new FacturePDFGeneratedEvent(facture.getFactId()));
+        return result;
+    }
+
+    @Override
+    public byte[] generateFactureQR(Facture facture) {
+        byte[] result= factureGeneratePDFOutputPort.generateQR(facture);
         return result;
     }
 

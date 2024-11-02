@@ -10,16 +10,20 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.itextpdf.io.image.ImageData;
 import com.itextpdf.io.image.ImageDataFactory;
 import com.itextpdf.kernel.color.Color;
+import com.itextpdf.kernel.color.DeviceRgb;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
 import com.itextpdf.layout.border.Border;
 import com.itextpdf.layout.border.SolidBorder;
 import com.itextpdf.layout.element.*;
+import com.itextpdf.layout.element.Image;
 import com.itextpdf.layout.property.HorizontalAlignment;
 import com.itextpdf.layout.property.TextAlignment;
 import com.itextpdf.layout.property.UnitValue;
 import com.itextpdf.layout.property.VerticalAlignment;
+import io.netty.handler.codec.http.HttpHeaders;
+
 import com.google.zxing.qrcode.QRCodeWriter;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.common.BitMatrix;
@@ -27,6 +31,9 @@ import com.google.zxing.WriterException;
 import javax.imageio.ImageIO;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.awt.Font;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 
 import java.text.DateFormat;
@@ -35,11 +42,11 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
-
+import java.awt.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import org.springframework.beans.factory.annotation.Autowired;
-
-
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -56,6 +63,64 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
         private Random random = new Random();
 
         @Override
+        public byte[] generateQR(Facture facture) {
+            try {
+                DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+                Date date = new Date();
+        
+                // Definir el tamaño de la imagen
+                int width = 800;
+                int height = 600;
+                BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+                Graphics2D g2d = image.createGraphics();
+        
+                g2d.setColor(java.awt.Color.white); // Color blanco
+                g2d.fillRect(0, 0, width, height);
+                g2d.setColor(java.awt.Color.black); // Color negro
+        
+                // Dibujar el título de la factura
+                g2d.setFont(new Font("Arial", Font.BOLD, 24));
+                g2d.drawString("Factura de venta", 250, 50); // Centrando el título
+        
+                // Agregar detalles de la factura
+                g2d.setFont(new Font("Arial", Font.PLAIN, 14));
+                g2d.drawString("Número de Factura: " + facture.getFactCode(), 50, 100);
+                g2d.drawString("Fecha: " + dateFormat.format(date), 600, 100);
+                g2d.drawString("Cliente: " + facture.getThId(), 50, 130);
+        
+                // Encabezado de la tabla
+                int tableStartY = 160;
+                int rowHeight = 30;
+                g2d.setFont(new Font("Arial", Font.BOLD, 14));
+                g2d.drawString("Subtotal: " + facture.getFactSubtotals(), 550, tableStartY);
+                g2d.drawString("Descuento: " + facture.getDescounts(), 400, tableStartY);
+                g2d.drawString("IVA: " + facture.getFacSalesTax(), 250, tableStartY);
+        
+                // Línea de separación
+                g2d.drawLine(50, tableStartY + 5, 750, tableStartY + 5);
+        
+                // Filas de la tabla de productos (ajusta este bloque según sea necesario)
+                g2d.setFont(new Font("Arial", Font.PLAIN, 12));
+                int currentY = tableStartY + rowHeight;
+        
+                // Total de la factura
+                g2d.setFont(new Font("Arial", Font.BOLD, 14));
+                g2d.drawString("Total: " + (facture.getFacSalesTax() + facture.getFactSubtotals() - facture.getFacWithholdingSource() - facture.getDescounts()), 550, currentY + 20);
+        
+                // Liberar recursos gráficos
+                g2d.dispose();
+        
+                // Convertir la imagen a bytes
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                ImageIO.write(image, "jpeg", baos); // Cambiar a "jpeg" para el formato de imagen esperado
+                return baos.toByteArray();
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+        
+        @Override
         public byte[] generatePDF(Facture facture) {
                 try {
                         return generateInvoicePdf(facture);
@@ -64,7 +129,6 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
                         return null;
                 }
         }
-
 
         private byte[] generateInvoicePdf(Facture facture) throws IOException {
                 if (facture.getFactureType().toString().equals("Venta")) {
@@ -356,23 +420,22 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
                 document.add(mainTable);
                 // Productos
                 document.add(new Paragraph("PRODUCTOS").setTextAlignment(TextAlignment.CENTER).setBold());
-                Table itemTable = new Table(new float[] { 1, 1, 1,1, 1, 1, 1, 1, 1 });
+                Table itemTable = new Table(new float[] { 1, 1, 1, 1, 1, 1, 1, 1, 1 });
                 itemTable.setWidthPercent(100);
 
                 // Encabezados principales
-                
+
                 itemTable.addHeaderCell(new Cell(2, 1).add(new Paragraph("CÓDIGO").setBold())
                                 .setBackgroundColor(Color.LIGHT_GRAY));
                 itemTable.addHeaderCell(new Cell(2, 1).add(new Paragraph("DESCRIPCIÓN").setBold())
                                 .setBackgroundColor(Color.LIGHT_GRAY));
-                                itemTable.addHeaderCell(new Cell(2, 1).add(new Paragraph("CANTIDAD").setBold())
+                itemTable.addHeaderCell(new Cell(2, 1).add(new Paragraph("CANTIDAD").setBold())
                                 .setBackgroundColor(Color.LIGHT_GRAY));
                 // Celda de encabezado IVA con subcolumnas
                 Cell descontHeader = new Cell(1, 2).add(new Paragraph("DESCUENTOS").setBold())
                                 .setBackgroundColor(Color.LIGHT_GRAY)
                                 .setTextAlignment(TextAlignment.CENTER);
                 itemTable.addHeaderCell(descontHeader);
-               
 
                 // Celda de encabezado IVA con subcolumnas
                 Cell ivaHeader = new Cell(1, 2).add(new Paragraph("IVA").setBold())
@@ -380,21 +443,20 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
                                 .setTextAlignment(TextAlignment.CENTER);
                 itemTable.addHeaderCell(ivaHeader);
 
-                              
                 itemTable.addHeaderCell(new Cell(2, 1).add(new Paragraph("PRECIO UNITARIO").setBold())
                                 .setBackgroundColor(Color.LIGHT_GRAY));
                 itemTable.addHeaderCell(new Cell(2, 1).add(new Paragraph("VALOR TOTAL").setBold())
                                 .setBackgroundColor(Color.LIGHT_GRAY));
-                                // Subencabezados para IVA
-                                itemTable.addHeaderCell(new Cell().add(new Paragraph("$").setBold())
+                // Subencabezados para IVA
+                itemTable.addHeaderCell(new Cell().add(new Paragraph("$").setBold())
                                 .setBackgroundColor(Color.LIGHT_GRAY));
                 itemTable.addHeaderCell(new Cell().add(new Paragraph("%").setBold())
                                 .setBackgroundColor(Color.LIGHT_GRAY));
                 itemTable.addHeaderCell(
-                        new Cell().add(new Paragraph("$").setBold()).setBackgroundColor(Color.LIGHT_GRAY));
-        itemTable.addHeaderCell(
-                        new Cell().add(new Paragraph("%").setBold()).setBackgroundColor(Color.LIGHT_GRAY));
-          
+                                new Cell().add(new Paragraph("$").setBold()).setBackgroundColor(Color.LIGHT_GRAY));
+                itemTable.addHeaderCell(
+                                new Cell().add(new Paragraph("%").setBold()).setBackgroundColor(Color.LIGHT_GRAY));
+
                 // Filas de productos
                 for (Product p : facture.getFactProducts()) {
                         itemTable.addCell(new Cell().add(new Paragraph(String.valueOf(p.getCode()))));
@@ -514,11 +576,11 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
 
                         // Generar la imagen del código QR y agregarla en la segunda columna
                         Image qrCodeImage = generateQRCodeImage(
-                                        "www.dian.gov.co"); // Cambiar
-                                                                                                               // url
-                                                                                                               // por la
-                                                                                                               // de la
-                                                                                                               // dian
+                                        "http://contables.unicauca.edu.co/#/facturasQR/" + facture.getFactId()); // Cambiar
+                        // url
+                        // por la
+                        // de la
+                        // dian
 
                         table.addCell(new Cell().add(qrCodeImage.setHorizontalAlignment(HorizontalAlignment.CENTER)));
 

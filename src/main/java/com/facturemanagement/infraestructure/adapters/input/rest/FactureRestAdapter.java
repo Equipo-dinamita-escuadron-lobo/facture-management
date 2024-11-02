@@ -1,6 +1,8 @@
 package com.facturemanagement.infraestructure.adapters.input.rest;
 
+import java.awt.List;
 import java.io.ByteArrayInputStream;
+
 
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
@@ -23,6 +25,8 @@ import com.facturemanagement.infraestructure.adapters.input.rest.data.request.Fa
 import com.facturemanagement.infraestructure.adapters.input.rest.data.response.FactureGetResponse;
 import com.facturemanagement.infraestructure.adapters.input.rest.data.response.FactureListResponse;
 import com.facturemanagement.infraestructure.adapters.input.rest.mapper.FactureRestMapper;
+import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.layout.element.Image;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import jakarta.validation.Valid;
@@ -98,7 +102,30 @@ public class FactureRestAdapter {
                 .body(new InputStreamResource(bais));
     }
 
-   
+    @GetMapping("/facture/")
+public ResponseEntity<byte[]> generateFactureQR(
+        @RequestParam @Valid long factId) {
+    System.out.println("\nEntrando a petición para generar QR de factura\n" + factId);
+    
+    // Obtener la factura
+    Facture facture = this.getFactureUseCase.getFactureBy(factId);
+    if (facture == null) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+    }
+
+    // Generar el QR en formato de bytes
+    byte[] imageBytes = this.generateFacturePDFUseCase.generateFactureQR(facture);
+    if (imageBytes == null) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+    }
+
+    // Configurar la respuesta para descargar el archivo como imagen JPEG
+    return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=facture_preview.jpg")
+            .contentType(MediaType.IMAGE_JPEG)
+            .contentLength(imageBytes.length)
+            .body(imageBytes);
+}
 
     @GetMapping("/")
     public ResponseEntity<FactureGetResponse> getFactureBy(@RequestParam @Valid long factId) {

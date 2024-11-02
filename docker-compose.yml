@@ -32,7 +32,7 @@ services:
       - SECURITY_PASSWORD=
     depends_on:
       - db_factures
-    container_name: factures_management
+    container_name: http://localhost:8080/api_management
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.factures_management.rule=PathPrefix(`/api/factures`)"
