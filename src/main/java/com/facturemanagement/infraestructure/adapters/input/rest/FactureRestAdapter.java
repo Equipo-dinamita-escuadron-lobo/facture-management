@@ -73,7 +73,6 @@ public class FactureRestAdapter {
                 .contentLength(pdfBytes.length)
                 .body(new InputStreamResource(bais));
     }
-
     @PostMapping("/generatePreview")
     @CircuitBreaker(name = "external", fallbackMethod = "fallback")
     public ResponseEntity<InputStreamResource> generateFacturePreview(
@@ -98,6 +97,8 @@ public class FactureRestAdapter {
                 .contentLength(pdfBytes.length)
                 .body(new InputStreamResource(bais));
     }
+
+   
 
     @GetMapping("/")
     public ResponseEntity<FactureGetResponse> getFactureBy(@RequestParam @Valid long factId) {

@@ -24,6 +24,12 @@ public class ProductEntity {
     @Column(name = "prod_id", nullable = false, unique = true)
     private long productId;
 
+    @Column(name = "prod_code", nullable = false)
+    private String code;
+
+    @Column(name = "prod_descount", nullable = false)
+    private double descount;
+
     @Column(name = "prod_amount", nullable = false)
     private double amount;
 

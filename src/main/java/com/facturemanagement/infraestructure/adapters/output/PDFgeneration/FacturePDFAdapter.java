@@ -24,7 +24,6 @@ import com.google.zxing.qrcode.QRCodeWriter;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.WriterException;
-import com.itextpdf.io.image.ImageDataFactory;
 import javax.imageio.ImageIO;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -36,16 +35,11 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
-import java.util.UUID;
 
-import javax.imageio.ImageIO;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.awt.image.BufferedImage;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -71,13 +65,14 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
                 }
         }
 
+
         private byte[] generateInvoicePdf(Facture facture) throws IOException {
                 if (facture.getFactureType().toString().equals("Venta")) {
                         return generateInvoiceSalePdf(facture);
                 }
 
-                /*Si es factura de compra con esto se valida el descuento */
-                if(facture.getDescounts()==null){ 
+                /* Si es factura de compra con esto se valida el descuento */
+                if (facture.getDescounts() == null) {
                         facture.setDescounts(0.0);
                 }
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -153,7 +148,8 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
                 Table invoiceDetails = new Table(2);
                 invoiceDetails.setWidthPercent(100);
                 invoiceDetails.addCell(new Cell().add(boldText("FECHA DE EMISIÓN: ", String.valueOf(LocalDate.now()))));
-                invoiceDetails.addCell(new Cell().add(boldText("AUT. NUMERACIÓN FAC: ", facture.getFactCode().toString())));
+                invoiceDetails.addCell(
+                                new Cell().add(boldText("AUT. NUMERACIÓN FAC: ", facture.getFactCode().toString())));
                 invoiceDetails.addCell(new Cell().add(boldText("HORA DE EMISIÓN: ", dateFormat.format(date))));
                 invoiceDetails.addCell(new Cell().add(boldText("FECHA DE VENCIMIENTO: ", formattedExpirationDate)));
                 document.add(invoiceDetails);
@@ -242,7 +238,7 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
         }
 
         private byte[] generateInvoiceSalePdf(Facture facture) throws IOException {
-                if(facture.getDescounts()==null){ 
+                if (facture.getDescounts() == null) {
                         facture.setDescounts(0.0);
                 }
                 NumberFormat currencyFormat = NumberFormat.getCurrencyInstance();
@@ -291,8 +287,6 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
                                 .add(enterprise.getEntNIT() + "-" + calcularDigitoVerificacion(enterprise.getEntNIT()))
                                 .add(new Text("\nContacto: ").setBold())
                                 .add(enterprise.getEntContact())
-                                .add(new Text("\nFactura de Venta No IND ").setBold())
-                                .add(facture.getFactCode().toString())
                                 .setTextAlignment(TextAlignment.LEFT);
 
                 headerTable.addCell(new Cell().add(enterpriseInfo).setBorder(Border.NO_BORDER));
@@ -360,33 +354,77 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
 
                 // Añade la tabla contenedora al documento
                 document.add(mainTable);
-
                 // Productos
                 document.add(new Paragraph("PRODUCTOS").setTextAlignment(TextAlignment.CENTER).setBold());
-                Table itemTable = new Table(new float[] { 1, 3, 1, 2, 2 });
+                Table itemTable = new Table(new float[] { 1, 1, 1,1, 1, 1, 1, 1, 1 });
                 itemTable.setWidthPercent(100);
-                itemTable.addHeaderCell(new Cell().add(new Paragraph("CANTIDAD").setBold())
+
+                // Encabezados principales
+                
+                itemTable.addHeaderCell(new Cell(2, 1).add(new Paragraph("CÓDIGO").setBold())
                                 .setBackgroundColor(Color.LIGHT_GRAY));
-                itemTable.addHeaderCell(new Cell().add(new Paragraph("DESCRIPCIÓN").setBold())
+                itemTable.addHeaderCell(new Cell(2, 1).add(new Paragraph("DESCRIPCIÓN").setBold())
+                                .setBackgroundColor(Color.LIGHT_GRAY));
+                                itemTable.addHeaderCell(new Cell(2, 1).add(new Paragraph("CANTIDAD").setBold())
+                                .setBackgroundColor(Color.LIGHT_GRAY));
+                // Celda de encabezado IVA con subcolumnas
+                Cell descontHeader = new Cell(1, 2).add(new Paragraph("DESCUENTOS").setBold())
+                                .setBackgroundColor(Color.LIGHT_GRAY)
+                                .setTextAlignment(TextAlignment.CENTER);
+                itemTable.addHeaderCell(descontHeader);
+               
+
+                // Celda de encabezado IVA con subcolumnas
+                Cell ivaHeader = new Cell(1, 2).add(new Paragraph("IVA").setBold())
+                                .setBackgroundColor(Color.LIGHT_GRAY)
+                                .setTextAlignment(TextAlignment.CENTER);
+                itemTable.addHeaderCell(ivaHeader);
+
+                              
+                itemTable.addHeaderCell(new Cell(2, 1).add(new Paragraph("PRECIO UNITARIO").setBold())
+                                .setBackgroundColor(Color.LIGHT_GRAY));
+                itemTable.addHeaderCell(new Cell(2, 1).add(new Paragraph("VALOR TOTAL").setBold())
+                                .setBackgroundColor(Color.LIGHT_GRAY));
+                                // Subencabezados para IVA
+                                itemTable.addHeaderCell(new Cell().add(new Paragraph("$").setBold())
+                                .setBackgroundColor(Color.LIGHT_GRAY));
+                itemTable.addHeaderCell(new Cell().add(new Paragraph("%").setBold())
                                 .setBackgroundColor(Color.LIGHT_GRAY));
                 itemTable.addHeaderCell(
-                                new Cell().add(new Paragraph("IVA").setBold()).setBackgroundColor(Color.LIGHT_GRAY));
-                itemTable.addHeaderCell(new Cell().add(new Paragraph("PRECIO UNITARIO").setBold())
-                                .setBackgroundColor(Color.LIGHT_GRAY));
-                itemTable.addHeaderCell(new Cell().add(new Paragraph("VALOR TOTAL").setBold())
-                                .setBackgroundColor(Color.LIGHT_GRAY));
-
+                        new Cell().add(new Paragraph("$").setBold()).setBackgroundColor(Color.LIGHT_GRAY));
+        itemTable.addHeaderCell(
+                        new Cell().add(new Paragraph("%").setBold()).setBackgroundColor(Color.LIGHT_GRAY));
+          
+                // Filas de productos
                 for (Product p : facture.getFactProducts()) {
-                        itemTable.addCell(new Cell().add(new Paragraph(p.getAmount() + "")));
+                        itemTable.addCell(new Cell().add(new Paragraph(String.valueOf(p.getCode()))));
                         itemTable.addCell(new Cell().add(new Paragraph(p.getDescription())));
+                        itemTable.addCell(new Cell().add(new Paragraph(String.valueOf(p.getAmount()))));
+                        itemTable.addCell(new Cell().add(new Paragraph(currencyFormat.format(
+                                        (p.getUnitPrice() * (p.getDescount() / 100)) * p.getAmount()))));
+                        itemTable.addCell(new Cell().add(new Paragraph((p.getDescount()) + "%")));
+
+                        // Valores para IVA
+                        itemTable.addCell(new Cell().add(new Paragraph(
+                                        currencyFormat.format(p.getAmount() * p.getUnitPrice() * p.getVat()))));
                         itemTable.addCell(new Cell().add(new Paragraph((p.getVat() * 100) + "%")));
+
                         itemTable.addCell(new Cell().add(new Paragraph(currencyFormat.format(p.getUnitPrice()))));
-                        itemTable.addCell(new Cell()
-                                        .add(new Paragraph(currencyFormat.format((p.getAmount() * p.getUnitPrice())))));
+                        itemTable.addCell(new Cell().add(new Paragraph(currencyFormat.format(
+                                        (p.getAmount() * p.getUnitPrice()) +
+                                                        (p.getAmount() * p.getUnitPrice() * p.getVat()) -
+                                                        ((p.getUnitPrice() * (p.getDescount() / 100))
+                                                                        * p.getAmount())))));
                 }
 
-                itemTable.addCell(new Cell().add(boldText("Cantidad Total: ", facture.getFactProducts().size() + "")));
+                // Celda de cantidad total
+                itemTable.addCell(
+                                new Cell(1, 1).add(new Paragraph("Cantidad Total: " + facture.getFactProducts().size()))
+                                                .setTextAlignment(TextAlignment.RIGHT)
+                                                .setBold());
+
                 document.add(itemTable);
+
                 document.add(new Paragraph(" "));
                 document.add(new Paragraph(" "));
 
@@ -423,7 +461,8 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
                                                 .setTextAlignment(TextAlignment.CENTER));
                 summaryTable.addCell(new Cell()
                                 .add(new Paragraph(currencyFormat
-                                                .format(facture.getFactSubtotals() + facture.getFacSalesTax() - facture.getDescounts())))
+                                                .format(facture.getFactSubtotals() + facture.getFacSalesTax()
+                                                                - facture.getDescounts())))
                                 .setTextAlignment(TextAlignment.CENTER));
                 summaryTable.addCell(
                                 new Cell().add(new Paragraph(currencyFormat.format(facture.getFacWithholdingSource())))
@@ -432,7 +471,8 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
                 summaryTable.addCell(new Cell()
                                 .add(new Paragraph(currencyFormat
                                                 .format(facture.getFactSubtotals() + facture.getFacSalesTax()
-                                                                - facture.getFacWithholdingSource() - facture.getDescounts())))
+                                                                - facture.getFacWithholdingSource()
+                                                                - facture.getDescounts())))
                                 .setTextAlignment(TextAlignment.CENTER));
 
                 // Agregar la tabla de resumen al documento
@@ -448,9 +488,9 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
                 observationsTable.addCell(new Cell()
                                 .add(new Paragraph("Observaciones:").setBold())
                                 .add(new Paragraph(
-                                                // Agregar las observaciones de la factura, tiene que ser guardarce en la bd
-                                                facture.getFactObservations()
-                                                ))
+                                                // Agregar las observaciones de la factura, tiene que ser guardarce en
+                                                // la bd
+                                                facture.getFactObservations()))
                                 .setPadding(10) // Espaciado interno en la celda
                                 .setBorder(new SolidBorder(1)) // Borde sólido de grosor 1
                 );
@@ -474,7 +514,7 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
 
                         // Generar la imagen del código QR y agregarla en la segunda columna
                         Image qrCodeImage = generateQRCodeImage(
-                                        "https://www.youtube.com/watch?v=wohwc9MQt6A&ab_channel=BryantMyers"); // Cambiar
+                                        "www.dian.gov.co"); // Cambiar
                                                                                                                // url
                                                                                                                // por la
                                                                                                                // de la

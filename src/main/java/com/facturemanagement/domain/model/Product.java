@@ -13,6 +13,8 @@ public class Product {
     private long productId;
     private double amount;
     private String description;
+    private double descount;
+    private String code;
     private double vat;
     private double unitPrice;
     private double subtotal;

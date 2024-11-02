@@ -20,5 +20,6 @@ public class GeneratedPDFFactureService implements GenerateFacturePDFUseCase{
         factureEventPublisher.publishFactureGeneratePDFEvent(new FacturePDFGeneratedEvent(facture.getFactId()));
         return result;
     }
+
     
 }

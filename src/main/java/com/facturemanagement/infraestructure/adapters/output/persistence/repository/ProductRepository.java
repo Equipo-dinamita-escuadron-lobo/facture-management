@@ -10,4 +10,5 @@ import com.facturemanagement.infraestructure.adapters.output.persistence.entity.
 public interface ProductRepository extends JpaRepository<ProductEntity, Long>{
     @Query("SELECT p FROM ProductEntity p INNER JOIN p.factures f WHERE f.factId = :factId")
     Set<ProductEntity> getProductsByFactureId(Long factId);
+    
 }
