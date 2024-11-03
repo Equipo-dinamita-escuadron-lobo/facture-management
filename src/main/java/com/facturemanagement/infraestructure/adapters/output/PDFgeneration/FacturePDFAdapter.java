@@ -576,7 +576,7 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
 
                         // Generar la imagen del código QR y agregarla en la segunda columna
                         Image qrCodeImage = generateQRCodeImage(
-                                        "http://contables.unicauca.edu.co/#/general/facturaQR/3" + facture.getFactId()); // Cambiar
+                                        "http://contables.unicauca.edu.co/#/general/facturaQR/" + facture.getFactId()); // Cambiar
                         
 
                         table.addCell(new Cell().add(qrCodeImage.setHorizontalAlignment(HorizontalAlignment.CENTER)));
