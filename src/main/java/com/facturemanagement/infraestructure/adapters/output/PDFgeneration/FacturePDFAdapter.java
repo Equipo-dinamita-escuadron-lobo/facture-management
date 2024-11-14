@@ -514,7 +514,7 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
                         itemTable.addCell(new Cell().add(new Paragraph(currencyFormat.format(p.getUnitPrice()))));
 
                         Double descountValue= (p.getUnitPrice() * (p.getDescount() / 100)) * p.getAmount();
-                        Double vatValue = ((p.getAmount() * p.getUnitPrice()) -p.getDescount()) * p.getVat();
+                        Double vatValue = ((p.getAmount() * p.getUnitPrice()) -descountValue) * p.getVat();
                         itemTable.addCell(new Cell().add(new Paragraph(currencyFormat.format(descountValue))));
 
 
@@ -583,7 +583,7 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
                 summaryTable.addCell(new Cell()
                                 .add(new Paragraph(currencyFormat
                                                 .format(facture.getFactSubtotals() + facture.getFacSalesTax()
-                                                                - facture.getDescounts())))
+                                                                )))
                                 .setTextAlignment(TextAlignment.CENTER));
                 summaryTable.addCell(
                                 new Cell().add(new Paragraph(currencyFormat.format(facture.getFacWithholdingSource())))
@@ -593,7 +593,7 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
                                 .add(new Paragraph(currencyFormat
                                                 .format(facture.getFactSubtotals() + facture.getFacSalesTax()
                                                                 - facture.getFacWithholdingSource()
-                                                                - facture.getDescounts())))
+                                                                )))
                                 .setTextAlignment(TextAlignment.CENTER));
 
                 // Agregar la tabla de resumen al documento
