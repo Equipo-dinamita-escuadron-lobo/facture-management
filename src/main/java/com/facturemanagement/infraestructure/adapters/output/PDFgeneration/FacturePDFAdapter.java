@@ -63,64 +63,83 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
         private Random random = new Random();
 
         @Override
-        public byte[] generateQR(Facture facture) {
-                try {
-                        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-                        Date date = new Date();
+public byte[] generateQR(Facture facture) {
+    try {
+        Third third = this.thirdData(facture);
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+        Date date = new Date();
 
-                        // Definir el tamaño de la imagen
-                        int width = 800;
-                        int height = 600;
-                        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-                        Graphics2D g2d = image.createGraphics();
+        // Tamaño de la imagen
+        int width = 800;
+        int height = 600;
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g2d = image.createGraphics();
 
-                        g2d.setColor(java.awt.Color.white); // Color blanco
-                        g2d.fillRect(0, 0, width, height);
-                        g2d.setColor(java.awt.Color.black); // Color negro
+        // Fondo blanco
+        g2d.setColor(java.awt.Color.white);
+        g2d.fillRect(0, 0, width, height);
+        g2d.setColor(java.awt.Color.black);
 
-                        // Dibujar el título de la factura
-                        g2d.setFont(new Font("Arial", Font.BOLD, 24));
-                        g2d.drawString("Factura de venta", 250, 50); // Centrando el título
+        // Título
+        g2d.setFont(new Font("Arial", Font.BOLD, 24));
+        g2d.drawString("Factura de venta", 250, 50);
 
-                        // Agregar detalles de la factura
-                        g2d.setFont(new Font("Arial", Font.PLAIN, 14));
-                        g2d.drawString("Número de Factura: " + facture.getFactCode(), 50, 100);
-                        g2d.drawString("Fecha: " + dateFormat.format(date), 600, 100);
-                        g2d.drawString("Cliente: " + facture.getThId(), 50, 130);
+        // Detalles de la factura
+        g2d.setFont(new Font("Arial", Font.PLAIN, 14));
+        g2d.drawString("Número de Factura: " + facture.getFactCode(), 50, 100);
+        g2d.drawString("Fecha: " + dateFormat.format(date), 600, 100);
+        g2d.drawString("Cliente: " + third.getNames() + " " + third.getLastNames(), 50, 130);
 
-                        // Encabezado de la tabla
-                        int tableStartY = 160;
-                        int rowHeight = 30;
-                        g2d.setFont(new Font("Arial", Font.BOLD, 14));
-                        g2d.drawString("Subtotal: " + facture.getFactSubtotals(), 550, tableStartY);
-                        g2d.drawString("Descuento: " + facture.getDescounts(), 400, tableStartY);
-                        g2d.drawString("IVA: " + facture.getFacSalesTax(), 250, tableStartY);
+        // Encabezado de la tabla de productos
+        int tableStartY = 160;
+        int rowHeight = 30;
+        g2d.setFont(new Font("Arial", Font.BOLD, 14));
+        g2d.drawString("Código", 50, tableStartY);
+        g2d.drawString("Descripción", 150, tableStartY);
+        g2d.drawString("Cantidad", 300, tableStartY);
+        g2d.drawString("Precio Unitario", 390, tableStartY);
+        g2d.drawString("Descuento", 510, tableStartY);
+        g2d.drawString("IVA", 600, tableStartY);
+        g2d.drawString("Subtotal", 700, tableStartY);
 
-                        // Línea de separación
-                        g2d.drawLine(50, tableStartY + 5, 750, tableStartY + 5);
+        // Línea de separación
+        g2d.drawLine(50, tableStartY + 5, 750, tableStartY + 5);
 
-                        // Filas de la tabla de productos (ajusta este bloque según sea necesario)
-                        g2d.setFont(new Font("Arial", Font.PLAIN, 12));
-                        int currentY = tableStartY + rowHeight;
-
-                        // Total de la factura
-                        g2d.setFont(new Font("Arial", Font.BOLD, 14));
-                        g2d.drawString("Total: " + (facture.getFacSalesTax() + facture.getFactSubtotals()
-                                        - facture.getFacWithholdingSource() - facture.getDescounts()), 550,
-                                        currentY + 20);
-
-                        // Liberar recursos gráficos
-                        g2d.dispose();
-
-                        // Convertir la imagen a bytes
-                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                        ImageIO.write(image, "jpeg", baos); // Cambiar a "jpeg" para el formato de imagen esperado
-                        return baos.toByteArray();
-                } catch (Exception e) {
-                        e.printStackTrace();
-                        return null;
-                }
+        // Filas de la tabla de productos
+        g2d.setFont(new Font("Arial", Font.PLAIN, 12));
+        int currentY = tableStartY + rowHeight;
+        for (Product p : facture.getFactProducts()) {
+            g2d.drawString(p.getCode(), 50, currentY);
+            g2d.drawString(p.getDescription(), 150, currentY);
+            g2d.drawString(String.valueOf(p.getAmount()), 300, currentY);
+            g2d.drawString(String.format("%.2f", p.getUnitPrice()), 400, currentY);
+            g2d.drawString(String.format("%.2f", p.getDescount()), 500, currentY);
+            g2d.drawString(String.format("%.2f", p.getVat()), 600, currentY);
+            g2d.drawString(String.format("%.2f", p.getSubtotal()), 700, currentY);
+            currentY += rowHeight;
         }
+
+        // Total de la factura
+        g2d.setFont(new Font("Arial", Font.BOLD, 14));
+        g2d.drawString("Subtotal: " + facture.getFactSubtotals(), 550, currentY + 20);
+        g2d.drawString("Descuento: " + facture.getDescounts(), 400, currentY + 20);
+        g2d.drawString("IVA: " + facture.getFacSalesTax(), 250, currentY + 20);
+        g2d.drawString("Total: " + (facture.getFacSalesTax() + facture.getFactSubtotals()
+                        - facture.getFacWithholdingSource()), 550, currentY + 50);
+
+        // Liberar recursos gráficos
+        g2d.dispose();
+
+        // Convertir la imagen a bytes
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(image, "jpeg", baos);
+        return baos.toByteArray();
+    } catch (Exception e) {
+        e.printStackTrace();
+        return null;
+    }
+}
+
 
         @Override
         public byte[] generatePDF(Facture facture) {
