@@ -45,7 +45,7 @@ import java.util.Date;
 import java.awt.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-
+import org.hibernate.metamodel.model.domain.DomainType;
 import org.springframework.beans.factory.annotation.Autowired;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -64,62 +64,64 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
 
         @Override
         public byte[] generateQR(Facture facture) {
-            try {
-                DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-                Date date = new Date();
-        
-                // Definir el tamaño de la imagen
-                int width = 800;
-                int height = 600;
-                BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-                Graphics2D g2d = image.createGraphics();
-        
-                g2d.setColor(java.awt.Color.white); // Color blanco
-                g2d.fillRect(0, 0, width, height);
-                g2d.setColor(java.awt.Color.black); // Color negro
-        
-                // Dibujar el título de la factura
-                g2d.setFont(new Font("Arial", Font.BOLD, 24));
-                g2d.drawString("Factura de venta", 250, 50); // Centrando el título
-        
-                // Agregar detalles de la factura
-                g2d.setFont(new Font("Arial", Font.PLAIN, 14));
-                g2d.drawString("Número de Factura: " + facture.getFactCode(), 50, 100);
-                g2d.drawString("Fecha: " + dateFormat.format(date), 600, 100);
-                g2d.drawString("Cliente: " + facture.getThId(), 50, 130);
-        
-                // Encabezado de la tabla
-                int tableStartY = 160;
-                int rowHeight = 30;
-                g2d.setFont(new Font("Arial", Font.BOLD, 14));
-                g2d.drawString("Subtotal: " + facture.getFactSubtotals(), 550, tableStartY);
-                g2d.drawString("Descuento: " + facture.getDescounts(), 400, tableStartY);
-                g2d.drawString("IVA: " + facture.getFacSalesTax(), 250, tableStartY);
-        
-                // Línea de separación
-                g2d.drawLine(50, tableStartY + 5, 750, tableStartY + 5);
-        
-                // Filas de la tabla de productos (ajusta este bloque según sea necesario)
-                g2d.setFont(new Font("Arial", Font.PLAIN, 12));
-                int currentY = tableStartY + rowHeight;
-        
-                // Total de la factura
-                g2d.setFont(new Font("Arial", Font.BOLD, 14));
-                g2d.drawString("Total: " + (facture.getFacSalesTax() + facture.getFactSubtotals() - facture.getFacWithholdingSource() - facture.getDescounts()), 550, currentY + 20);
-        
-                // Liberar recursos gráficos
-                g2d.dispose();
-        
-                // Convertir la imagen a bytes
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                ImageIO.write(image, "jpeg", baos); // Cambiar a "jpeg" para el formato de imagen esperado
-                return baos.toByteArray();
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
-            }
+                try {
+                        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+                        Date date = new Date();
+
+                        // Definir el tamaño de la imagen
+                        int width = 800;
+                        int height = 600;
+                        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+                        Graphics2D g2d = image.createGraphics();
+
+                        g2d.setColor(java.awt.Color.white); // Color blanco
+                        g2d.fillRect(0, 0, width, height);
+                        g2d.setColor(java.awt.Color.black); // Color negro
+
+                        // Dibujar el título de la factura
+                        g2d.setFont(new Font("Arial", Font.BOLD, 24));
+                        g2d.drawString("Factura de venta", 250, 50); // Centrando el título
+
+                        // Agregar detalles de la factura
+                        g2d.setFont(new Font("Arial", Font.PLAIN, 14));
+                        g2d.drawString("Número de Factura: " + facture.getFactCode(), 50, 100);
+                        g2d.drawString("Fecha: " + dateFormat.format(date), 600, 100);
+                        g2d.drawString("Cliente: " + facture.getThId(), 50, 130);
+
+                        // Encabezado de la tabla
+                        int tableStartY = 160;
+                        int rowHeight = 30;
+                        g2d.setFont(new Font("Arial", Font.BOLD, 14));
+                        g2d.drawString("Subtotal: " + facture.getFactSubtotals(), 550, tableStartY);
+                        g2d.drawString("Descuento: " + facture.getDescounts(), 400, tableStartY);
+                        g2d.drawString("IVA: " + facture.getFacSalesTax(), 250, tableStartY);
+
+                        // Línea de separación
+                        g2d.drawLine(50, tableStartY + 5, 750, tableStartY + 5);
+
+                        // Filas de la tabla de productos (ajusta este bloque según sea necesario)
+                        g2d.setFont(new Font("Arial", Font.PLAIN, 12));
+                        int currentY = tableStartY + rowHeight;
+
+                        // Total de la factura
+                        g2d.setFont(new Font("Arial", Font.BOLD, 14));
+                        g2d.drawString("Total: " + (facture.getFacSalesTax() + facture.getFactSubtotals()
+                                        - facture.getFacWithholdingSource() - facture.getDescounts()), 550,
+                                        currentY + 20);
+
+                        // Liberar recursos gráficos
+                        g2d.dispose();
+
+                        // Convertir la imagen a bytes
+                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        ImageIO.write(image, "jpeg", baos); // Cambiar a "jpeg" para el formato de imagen esperado
+                        return baos.toByteArray();
+                } catch (Exception e) {
+                        e.printStackTrace();
+                        return null;
+                }
         }
-        
+
         @Override
         public byte[] generatePDF(Facture facture) {
                 try {
@@ -302,6 +304,7 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
         }
 
         private byte[] generateInvoiceSalePdf(Facture facture) throws IOException {
+                float tamañoEncabezadosTablas = 8;
                 if (facture.getDescounts() == null) {
                         facture.setDescounts(0.0);
                 }
@@ -332,7 +335,7 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
                 }
 
                 // Tabla de encabezado unificado con logo y detalles de la empresa
-                Table headerTable = new Table(new float[] { 1, 4 });
+                Table headerTable = new Table(new float[] { 2, 8 });
                 headerTable.setWidth(UnitValue.createPercentValue(100));
 
                 if (logo != null) {
@@ -342,15 +345,14 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
                 }
 
                 Paragraph enterpriseInfo = new Paragraph()
-                                .add(new Text(enterprise.getEntName()).setBold().setFontSize(14)) // Aumenta el tamaño
-                                                                                                  // de la letra del
-                                                                                                  // nombre
-                                .add(new Text("\nDirección: ").setBold())
-                                .add(enterprise.getEntAddress() + ", Colombia")
-                                .add(new Text("\nNIT: ").setBold())
-                                .add(enterprise.getEntNIT() + "-" + calcularDigitoVerificacion(enterprise.getEntNIT()))
-                                .add(new Text("\nContacto: ").setBold())
-                                .add(enterprise.getEntContact())
+                                .add(new Text(enterprise.getEntName()).setBold().setFontSize(24))
+                                .add(new Text("\nDirección: ").setBold().setFontSize(13))
+                                .add(new Text(enterprise.getEntAddress() + ", Colombia").setFontSize(13))
+                                .add(new Text("\nNIT: ").setBold().setFontSize(13))
+                                .add(new Text(enterprise.getEntNIT() + "-"
+                                                + calcularDigitoVerificacion(enterprise.getEntNIT())).setFontSize(13))
+                                .add(new Text("\nContacto: ").setBold().setFontSize(13))
+                                .add(new Text(enterprise.getEntContact()).setFontSize(13))
                                 .setTextAlignment(TextAlignment.LEFT);
 
                 headerTable.addCell(new Cell().add(enterpriseInfo).setBorder(Border.NO_BORDER));
@@ -360,9 +362,15 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
 
                 document.add(new Paragraph(" ")); // Espacio entre secciones
 
-                // Título de la sección
-                document.add(new Paragraph("DATOS DEL CLIENTE").setTextAlignment(TextAlignment.CENTER).setBold());
-
+                Table dataCliente = new Table(1);
+                dataCliente.setWidthPercent(20);
+                Paragraph DatosCliente = new Paragraph("Datos del cliente")
+                                .setTextAlignment(TextAlignment.LEFT)
+                                .setBold()
+                                .setBackgroundColor(Color.LIGHT_GRAY)
+                                .setBorder(Border.NO_BORDER);
+                dataCliente.addCell(new Cell().add(DatosCliente).setBorder(Border.NO_BORDER));
+                document.add(dataCliente);
                 // Tabla principal que contiene las dos tablas internas
                 Table mainTable = new Table(new float[] { 8, 2 }); // Dos columnas de diferente tamaño
                 mainTable.setWidthPercent(100);
@@ -374,29 +382,41 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
 
                 // Agrega las celdas de información del cliente en dos columnas (título
                 // sombreado y datos)
-                clientDetails.addCell(new Cell().add(new Paragraph("Cliente:").setBold())
-                                .setBackgroundColor(Color.LIGHT_GRAY));
-                clientDetails.addCell(new Cell().add(new Paragraph(third.getNames() + " " + third.getLastNames())));
+                clientDetails.addCell(
+                                new Cell().add(new Paragraph("Cliente:").setBold().setFontSize(tamañoEncabezadosTablas))
+                                                .setBackgroundColor(Color.LIGHT_GRAY));
+                clientDetails.addCell(new Cell().add(new Paragraph(third.getNames() + " " + third.getLastNames())
+                                .setFontSize(tamañoEncabezadosTablas)));
 
-                clientDetails.addCell(new Cell().add(new Paragraph("NIT:").setBold())
-                                .setBackgroundColor(Color.LIGHT_GRAY));
-                clientDetails.addCell(new Cell().add(new Paragraph(third.getPhoneNumber())));
+                clientDetails.addCell(
+                                new Cell().add(new Paragraph("NIT:").setBold().setFontSize(tamañoEncabezadosTablas))
+                                                .setBackgroundColor(Color.LIGHT_GRAY));
+                clientDetails.addCell(new Cell()
+                                .add(new Paragraph(third.getPhoneNumber()).setFontSize(tamañoEncabezadosTablas)));
 
-                clientDetails.addCell(new Cell().add(new Paragraph("Dirección:").setBold())
+                clientDetails.addCell(new Cell()
+                                .add(new Paragraph("Dirección:").setBold().setFontSize(tamañoEncabezadosTablas))
                                 .setBackgroundColor(Color.LIGHT_GRAY));
-                clientDetails.addCell(new Cell().add(new Paragraph(third.getAddress())));
+                clientDetails.addCell(
+                                new Cell().add(new Paragraph(third.getAddress()).setFontSize(tamañoEncabezadosTablas)));
 
-                clientDetails.addCell(new Cell().add(new Paragraph("Ciudad:").setBold())
-                                .setBackgroundColor(Color.LIGHT_GRAY));
-                clientDetails.addCell(new Cell().add(new Paragraph(third.getCity())));
+                clientDetails.addCell(
+                                new Cell().add(new Paragraph("Ciudad:").setBold().setFontSize(tamañoEncabezadosTablas))
+                                                .setBackgroundColor(Color.LIGHT_GRAY));
+                clientDetails.addCell(
+                                new Cell().add(new Paragraph(third.getCity())).setFontSize(tamañoEncabezadosTablas));
 
-                clientDetails.addCell(new Cell().add(new Paragraph("Teléfono:").setBold())
+                clientDetails.addCell(new Cell()
+                                .add(new Paragraph("Teléfono:").setBold().setFontSize(tamañoEncabezadosTablas))
                                 .setBackgroundColor(Color.LIGHT_GRAY));
-                clientDetails.addCell(new Cell().add(new Paragraph(third.getPhoneNumber())));
+                clientDetails.addCell(new Cell()
+                                .add(new Paragraph(third.getPhoneNumber()).setFontSize(tamañoEncabezadosTablas)));
 
-                clientDetails.addCell(new Cell().add(new Paragraph("Correo:").setBold())
-                                .setBackgroundColor(Color.LIGHT_GRAY));
-                clientDetails.addCell(new Cell().add(new Paragraph(third.getEmail())));
+                clientDetails.addCell(
+                                new Cell().add(new Paragraph("Correo:").setBold().setFontSize(tamañoEncabezadosTablas))
+                                                .setBackgroundColor(Color.LIGHT_GRAY));
+                clientDetails.addCell(
+                                new Cell().add(new Paragraph(third.getEmail()).setFontSize(tamañoEncabezadosTablas)));
 
                 // Segunda tabla: información de la factura
                 Table facturaDetails = new Table(1);
@@ -404,12 +424,13 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
                 facturaDetails.setWidthPercent(100);
 
                 facturaDetails.addCell(new Cell()
-                                .add(new Paragraph("FACTURA VENTA NO IND " + facture.getFactCode().toString()).setBold()
+                                .add(new Paragraph("FACTURA VENTA No IND " + facture.getFactCode().toString()).setBold()
+                                                .setFontSize(12)
                                                 .setTextAlignment(TextAlignment.CENTER))
-                                .add(new Paragraph("Fecha y Hora de Factura: " + LocalDate.now().toString()))
-                                .add(new Paragraph("Expedición: " + dateFormat.format(date)))
-                                .add(new Paragraph("Vencimiento: " + dateFormat.format(date)))
-                                .setTextAlignment(TextAlignment.LEFT)
+                                .add(new Paragraph("Expedición: " + dateFormat.format(date))
+                                                .setTextAlignment(TextAlignment.CENTER))
+                                .add(new Paragraph("Vencimiento: " + dateFormat.format(date))
+                                                .setTextAlignment(TextAlignment.CENTER))
                                 .setVerticalAlignment(VerticalAlignment.MIDDLE));
 
                 // Alinea ambas tablas en la tabla principal
@@ -419,100 +440,138 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
                 // Añade la tabla contenedora al documento
                 document.add(mainTable);
                 // Productos
-                document.add(new Paragraph("PRODUCTOS").setTextAlignment(TextAlignment.CENTER).setBold());
+                Table nameTable = new Table(1);
+                nameTable.setWidthPercent(20);
+                Paragraph detalleFactura = new Paragraph("Detalle de Factura")
+                                .setTextAlignment(TextAlignment.LEFT)
+                                .setBold()
+                                .setBackgroundColor(Color.LIGHT_GRAY)
+                                .setBorder(Border.NO_BORDER);
+                nameTable.addCell(new Cell().add(detalleFactura).setBorder(Border.NO_BORDER));
+                document.add(nameTable);
+
                 Table itemTable = new Table(new float[] { 1, 1, 1, 1, 1, 1, 1, 1, 1 });
                 itemTable.setWidthPercent(100);
 
                 // Encabezados principales
 
-                itemTable.addHeaderCell(new Cell(2, 1).add(new Paragraph("CÓDIGO").setBold())
+                itemTable.addHeaderCell(new Cell(2, 1)
+                                .add(new Paragraph("CÓDIGO").setBold().setFontSize(tamañoEncabezadosTablas))
+                                .setBackgroundColor(Color.LIGHT_GRAY))
+                                .setTextAlignment(TextAlignment.CENTER);
+                ;
+                itemTable.addHeaderCell(new Cell(2, 1)
+                                .add(new Paragraph("DESCRIPCIÓN").setBold().setFontSize(tamañoEncabezadosTablas))
+                                .setBackgroundColor(Color.LIGHT_GRAY))
+                                .setTextAlignment(TextAlignment.CENTER);
+                ;
+
+                itemTable.addHeaderCell(new Cell(2, 1)
+                                .add(new Paragraph("CANTIDAD").setBold().setFontSize(tamañoEncabezadosTablas))
                                 .setBackgroundColor(Color.LIGHT_GRAY));
-                itemTable.addHeaderCell(new Cell(2, 1).add(new Paragraph("DESCRIPCIÓN").setBold())
-                                .setBackgroundColor(Color.LIGHT_GRAY));
-                itemTable.addHeaderCell(new Cell(2, 1).add(new Paragraph("CANTIDAD").setBold())
-                                .setBackgroundColor(Color.LIGHT_GRAY));
+                itemTable.addHeaderCell(new Cell(2, 1)
+                                .add(new Paragraph("PRECIO UNITARIO").setBold().setFontSize(tamañoEncabezadosTablas))
+                                .setBackgroundColor(Color.LIGHT_GRAY))
+                                .setTextAlignment(TextAlignment.CENTER);
+                ;
                 // Celda de encabezado IVA con subcolumnas
-                Cell descontHeader = new Cell(1, 2).add(new Paragraph("DESCUENTOS").setBold())
+                Cell descontHeader = new Cell(1, 2)
+                                .add(new Paragraph("DESCUENTOS").setBold().setFontSize(tamañoEncabezadosTablas))
                                 .setBackgroundColor(Color.LIGHT_GRAY)
                                 .setTextAlignment(TextAlignment.CENTER);
                 itemTable.addHeaderCell(descontHeader);
 
                 // Celda de encabezado IVA con subcolumnas
-                Cell ivaHeader = new Cell(1, 2).add(new Paragraph("IVA").setBold())
+                Cell ivaHeader = new Cell(1, 2).add(new Paragraph("IVA").setBold().setFontSize(tamañoEncabezadosTablas))
                                 .setBackgroundColor(Color.LIGHT_GRAY)
                                 .setTextAlignment(TextAlignment.CENTER);
                 itemTable.addHeaderCell(ivaHeader);
 
-                itemTable.addHeaderCell(new Cell(2, 1).add(new Paragraph("PRECIO UNITARIO").setBold())
-                                .setBackgroundColor(Color.LIGHT_GRAY));
-                itemTable.addHeaderCell(new Cell(2, 1).add(new Paragraph("VALOR TOTAL").setBold())
-                                .setBackgroundColor(Color.LIGHT_GRAY));
+                itemTable.addHeaderCell(new Cell(2, 1)
+                                .add(new Paragraph("VALOR TOTAL").setBold().setFontSize(tamañoEncabezadosTablas))
+                                .setBackgroundColor(Color.LIGHT_GRAY))
+                                .setTextAlignment(TextAlignment.CENTER);
+                ;
                 // Subencabezados para IVA
-                itemTable.addHeaderCell(new Cell().add(new Paragraph("$").setBold())
-                                .setBackgroundColor(Color.LIGHT_GRAY));
-                itemTable.addHeaderCell(new Cell().add(new Paragraph("%").setBold())
-                                .setBackgroundColor(Color.LIGHT_GRAY));
                 itemTable.addHeaderCell(
-                                new Cell().add(new Paragraph("$").setBold()).setBackgroundColor(Color.LIGHT_GRAY));
+                                new Cell().add(new Paragraph("$").setBold().setFontSize(tamañoEncabezadosTablas))
+                                                .setBackgroundColor(Color.LIGHT_GRAY));
                 itemTable.addHeaderCell(
-                                new Cell().add(new Paragraph("%").setBold()).setBackgroundColor(Color.LIGHT_GRAY));
+                                new Cell().add(new Paragraph("%").setBold().setFontSize(tamañoEncabezadosTablas))
+                                                .setBackgroundColor(Color.LIGHT_GRAY));
+                itemTable.addHeaderCell(
+                                new Cell().add(new Paragraph("$").setBold().setFontSize(tamañoEncabezadosTablas))
+                                                .setBackgroundColor(Color.LIGHT_GRAY));
+                itemTable.addHeaderCell(
+                                new Cell().add(new Paragraph("%").setBold().setFontSize(tamañoEncabezadosTablas))
+                                                .setBackgroundColor(Color.LIGHT_GRAY));
 
                 // Filas de productos
                 for (Product p : facture.getFactProducts()) {
                         itemTable.addCell(new Cell().add(new Paragraph(String.valueOf(p.getCode()))));
                         itemTable.addCell(new Cell().add(new Paragraph(p.getDescription())));
                         itemTable.addCell(new Cell().add(new Paragraph(String.valueOf(p.getAmount()))));
-                        itemTable.addCell(new Cell().add(new Paragraph(currencyFormat.format(
-                                        (p.getUnitPrice() * (p.getDescount() / 100)) * p.getAmount()))));
+                        itemTable.addCell(new Cell().add(new Paragraph(currencyFormat.format(p.getUnitPrice()))));
+
+                        Double descountValue= (p.getUnitPrice() * (p.getDescount() / 100)) * p.getAmount();
+                        Double vatValue = ((p.getAmount() * p.getUnitPrice()) -p.getDescount()) * p.getVat();
+                        itemTable.addCell(new Cell().add(new Paragraph(currencyFormat.format(descountValue))));
+
+
                         itemTable.addCell(new Cell().add(new Paragraph((p.getDescount()) + "%")));
 
                         // Valores para IVA
                         itemTable.addCell(new Cell().add(new Paragraph(
-                                        currencyFormat.format(p.getAmount() * p.getUnitPrice() * p.getVat()))));
+                                        currencyFormat.format(vatValue))));
                         itemTable.addCell(new Cell().add(new Paragraph((p.getVat() * 100) + "%")));
 
-                        itemTable.addCell(new Cell().add(new Paragraph(currencyFormat.format(p.getUnitPrice()))));
                         itemTable.addCell(new Cell().add(new Paragraph(currencyFormat.format(
-                                        (p.getAmount() * p.getUnitPrice()) +
-                                                        (p.getAmount() * p.getUnitPrice() * p.getVat()) -
-                                                        ((p.getUnitPrice() * (p.getDescount() / 100))
-                                                                        * p.getAmount())))));
+                                        (p.getAmount() * p.getUnitPrice()) - descountValue + vatValue))));
                 }
 
                 // Celda de cantidad total
                 itemTable.addCell(
                                 new Cell(1, 1).add(new Paragraph("Cantidad Total: " + facture.getFactProducts().size()))
-                                                .setTextAlignment(TextAlignment.RIGHT)
-                                                .setBold());
+                                                .setTextAlignment(TextAlignment.LEFT)
+                                                .setBold().setFontSize(tamañoEncabezadosTablas));
 
                 document.add(itemTable);
 
-                document.add(new Paragraph(" "));
-                document.add(new Paragraph(" "));
-
-                // Título de la sección de totales
-                document.add(new Paragraph("RESUMEN DE LA FACTURA").setTextAlignment(TextAlignment.CENTER).setBold());
+                Table resFactTable = new Table(1);
+                resFactTable.setWidthPercent(20);
+                Paragraph ResumenFactura = new Paragraph("Resumen de Factura")
+                                .setTextAlignment(TextAlignment.LEFT)
+                                .setBold()
+                                .setBackgroundColor(Color.LIGHT_GRAY)
+                                .setBorder(Border.NO_BORDER);
+                resFactTable.addCell(new Cell().add(ResumenFactura).setBorder(Border.NO_BORDER));
+                document.add(resFactTable);
 
                 // Crear una tabla con tres columnas para mostrar los totales en una sola fila
                 Table summaryTable = new Table(6); // Cuatro columnas
                 summaryTable.setWidthPercent(100);
 
                 // Agregar las celdas de subtotales, impuestos y total en una sola fila
-                summaryTable.addCell(new Cell().add(new Paragraph("VALOR BRUTO").setBold())
+                summaryTable.addCell(new Cell()
+                                .add(new Paragraph("VALOR BRUTO").setBold().setFontSize(tamañoEncabezadosTablas))
                                 .setBackgroundColor(Color.LIGHT_GRAY).setTextAlignment(TextAlignment.CENTER));
-                summaryTable.addCell(new Cell().add(new Paragraph("VALOR DESCUENTOS").setBold())
+                summaryTable.addCell(new Cell()
+                                .add(new Paragraph("VALOR DESCUENTOS").setBold().setFontSize(tamañoEncabezadosTablas))
                                 .setBackgroundColor(Color.LIGHT_GRAY).setTextAlignment(TextAlignment.CENTER));
-                summaryTable.addCell(new Cell().add(new Paragraph("VALOR IMPUESTOS").setBold())
+                summaryTable.addCell(new Cell()
+                                .add(new Paragraph("VALOR IMPUESTOS").setBold().setFontSize(tamañoEncabezadosTablas))
                                 .setBackgroundColor(Color.LIGHT_GRAY).setTextAlignment(TextAlignment.CENTER));
-                summaryTable.addCell(new Cell().add(new Paragraph("VALOR NETO").setBold())
+                summaryTable.addCell(new Cell()
+                                .add(new Paragraph("VALOR NETO").setBold().setFontSize(tamañoEncabezadosTablas))
                                 .setBackgroundColor(Color.LIGHT_GRAY).setTextAlignment(TextAlignment.CENTER));
-                summaryTable.addCell(new Cell().add(new Paragraph("VALOR RETENCIÓN").setBold())
+                summaryTable.addCell(new Cell()
+                                .add(new Paragraph("VALOR RETENCIÓN").setBold().setFontSize(tamañoEncabezadosTablas))
                                 .setBackgroundColor(Color.LIGHT_GRAY).setTextAlignment(TextAlignment.CENTER));
-                summaryTable.addCell(new Cell().add(new Paragraph("VALOR DOCUMENTO").setBold())
+                summaryTable.addCell(new Cell()
+                                .add(new Paragraph("VALOR DOCUMENTO").setBold().setFontSize(tamañoEncabezadosTablas))
                                 .setBackgroundColor(Color.LIGHT_GRAY).setTextAlignment(TextAlignment.CENTER));
 
-                // Agregar los valores correspondientes debajo de cada encabezado en la misma
-                // fila
+                
                 summaryTable.addCell(new Cell().add(new Paragraph(currencyFormat.format(facture.getFactSubtotals())))
                                 .setTextAlignment(TextAlignment.CENTER));
 
@@ -563,30 +622,36 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
                 document.add(new Paragraph(" "));
 
                 try {
-                        // Crear una tabla con dos columnas y establecer los anchos
-                        Table table = new Table(new float[] { 4, 1 }); // 80% para el texto, 20% para el QR
-                        table.setWidth(UnitValue.createPercentValue(100)); // Establecer ancho total de la tabla al 100%
+                        // Crear una tabla con dos columnas y establecer los anchos (80% para texto, 20%
+                        // para QR)
+                        Table table = new Table(new float[] { 4, 1 });
+                        table.setWidth(UnitValue.createPercentValue(100)); // Ancho total de la tabla al 100%
 
                         // Agregar el texto en la primera columna con tamaño de letra más pequeño
-                        Paragraph textoFactura = new Paragraph(this.textForFacture(facture))
+                        Paragraph textoFactura = new Paragraph(this.textForFacture(facture)).setBold()
                                         .setTextAlignment(TextAlignment.LEFT)
-                                        .setFontSize(8); // Establecer el tamaño de fuente más pequeño
-
+                                        .setFontSize(8); // Tamaño de fuente más pequeño
                         table.addCell(new Cell().add(textoFactura).setBackgroundColor(Color.LIGHT_GRAY));
 
-                        // Generar la imagen del código QR y agregarla en la segunda columna
+                        // Generar la imagen del código QR y establecer su tamaño aproximado
                         Image qrCodeImage = generateQRCodeImage(
-                                        "http://contables.unicauca.edu.co/#/general/facturaQR/" + facture.getFactId()); // Cambiar
-                        
+                                        "http://contables.unicauca.edu.co/#/general/facturaQR/" + facture.getFactId());
 
-                        table.addCell(new Cell().add(qrCodeImage.setHorizontalAlignment(HorizontalAlignment.CENTER)));
+                        // Crear una celda para el QR y aplicar escalado manual para que ocupe todo el
+                        // espacio
+                        Cell qrCell = new Cell();
+
+                        // Añadir la imagen QR a la celda
+                        qrCell.add(qrCodeImage).setPadding(0).setMargins(0, 0, 0, 0);
+                        table.addCell(qrCell);
 
                         // Agregar la tabla al documento
                         document.add(table);
 
-                } catch (WriterException e) {
+                } catch (Exception e) {
                         e.printStackTrace();
                 }
+
                 document.close();
                 return baos.toByteArray();
         }
@@ -684,8 +749,8 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
                                 "Número Autorización 1876" + generateNumberAleatory(8) + " aprobado en "
                                 + getFormattedDate() + " Prefijo " + prefijoFacture(facture)
                                 + " desde el número 00001 al 40000 Vigencia: 12 Meses\n" +
+                                "Facturación DIAN \n" +
                                 "Responsable de IVA - Actividad Económica " + generateNumberAleatory(4) + "\n" +
-                                generateNumberAleatory(37) + " Tarifa 4.14\n" +
                                 "CUFE: " + generateCUFE() + "\n";
                 return textoFacture;
         }
