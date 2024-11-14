@@ -64,7 +64,8 @@ public class FactureRestAdapter {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(null);
         }
-        facture = this.createFactureUseCase.createFacture(facture);
+        Facture facture2=this.createFactureUseCase.createFacture(facture);
+        facture.setFactId(facture2.getFactId());
         pdfBytes = this.generateFacturePDFUseCase.generetePDFFacture(facture);
         ByteArrayInputStream bais = new ByteArrayInputStream(pdfBytes);
 
@@ -77,6 +78,7 @@ public class FactureRestAdapter {
                 .contentLength(pdfBytes.length)
                 .body(new InputStreamResource(bais));
     }
+
     @PostMapping("/generatePreview")
     @CircuitBreaker(name = "external", fallbackMethod = "fallback")
     public ResponseEntity<InputStreamResource> generateFacturePreview(

@@ -48,6 +48,7 @@ public class FactureCreateRequest {
     @NotNull(message = "The observations cannot be null.")
     private String factObservations;
 
+    @NotNull(message = "The descounts cannot be null.")
     private Double descounts;
     private LocalDate creationDate;
     private LocalDate updateDate;

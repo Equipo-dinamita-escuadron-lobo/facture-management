@@ -68,6 +68,11 @@ public byte[] generateQR(Facture facture) {
         Third third = this.thirdData(facture);
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         Date date = new Date();
+        Enterprise enterprise = this.enterpriseData(facture);
+
+
+
+
 
         // Tamaño de la imagen
         int width = 800;
@@ -79,6 +84,27 @@ public byte[] generateQR(Facture facture) {
         g2d.setColor(java.awt.Color.white);
         g2d.fillRect(0, 0, width, height);
         g2d.setColor(java.awt.Color.black);
+
+        
+        Image logo = null;
+        try {
+            // Cargar imagen con iText
+            BufferedImage bufferedImage = ImageIO.read(new URL("yourImageUrlHere"));
+            
+            // Convertir BufferedImage (java.awt.Image) a Image de iText
+            logo = new Image(ImageDataFactory.create(bufferedImage, null));
+            
+            // Opcional: Cambiar el tamaño de la imagen
+            logo.setWidth(100);
+            
+            // Dibujar la imagen utilizando Graphics2D (necesitamos convertir la imagen de iText a java.awt.Image)
+            BufferedImage awtLogo = bufferedImage;  // ya que bufferedImage es de tipo java.awt.Image
+            g2d.drawImage(awtLogo, 50, 50, null);  // Usamos null porque no necesitamos un ImageObserver
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         // Título
         g2d.setFont(new Font("Arial", Font.BOLD, 24));
