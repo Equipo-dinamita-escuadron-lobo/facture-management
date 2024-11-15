@@ -363,7 +363,7 @@ public byte[] generateQR(Facture facture) {
                         table.setWidth(UnitValue.createPercentValue(100)); // Ancho total de la tabla al 100%
 
                         // Agregar el texto en la primera columna con tamaño de letra más pequeño
-                        Paragraph textoFactura = new Paragraph(this.textForFacture(facture)).setBold()
+                        Paragraph textoFactura = new Paragraph(this.textForInvoiceFacture(facture)).setBold()
                                         .setTextAlignment(TextAlignment.LEFT)
                                         .setFontSize(8); // Tamaño de fuente más pequeño
                         table.addCell(new Cell().add(textoFactura).setBackgroundColor(Color.LIGHT_GRAY));
@@ -840,6 +840,20 @@ public byte[] generateQR(Facture facture) {
 
         private String textForFacture(Facture facture) {
                 String textoFacture = "A esta factura de venta aplican las normas relativas a la letra de cambio (artículo 5 Ley 1231 de 2008).\n"
+                                +
+                                "Con esta el Comprador declara haber recibido real y materialmente las mercancías o prestación de servicios descritos en este título - Valor.\n"
+                                +
+                                "Número Autorización 1876" + generateNumberAleatory(8) + " aprobado en "
+                                + getFormattedDate() + " Prefijo " + prefijoFacture(facture)
+                                + " desde el número 00001 al 40000 Vigencia: 12 Meses\n" +
+                                "Facturación DIAN \n" +
+                                "Responsable de IVA - Actividad Económica " + generateNumberAleatory(4) + "\n" +
+                                "CUFE: " + generateCUFE() + "\n";
+                return textoFacture;
+        }
+
+        private String textForInvoiceFacture(Facture facture) {
+                String textoFacture = "A esta factura de compra aplican las normas relativas a la letra de cambio (artículo 5 Ley 1231 de 2008).\n"
                                 +
                                 "Con esta el Comprador declara haber recibido real y materialmente las mercancías o prestación de servicios descritos en este título - Valor.\n"
                                 +
