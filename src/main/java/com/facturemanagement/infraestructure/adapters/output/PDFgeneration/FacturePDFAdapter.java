@@ -343,6 +343,24 @@ public byte[] generateQR(Facture facture) {
                 document.close();
 
 
+                Table observationsTable = new Table(1); // Tabla de una sola columna
+                observationsTable.setWidthPercent(100); // Configura la tabla al 100% del ancho
+
+                // Celda de Observaciones
+                observationsTable.addCell(new Cell()
+                                .add(new Paragraph("Observaciones:").setBold())
+                                .add(new Paragraph(
+                                                // Agregar las observaciones de la factura, tiene que ser guardarce en
+                                                // la bd
+                                                facture.getFactObservations()))
+                                .setPadding(10) // Espaciado interno en la celda
+                                .setBorder(new SolidBorder(1)) // Borde sólido de grosor 1
+                );
+
+                // Añadir la tabla de observaciones al documento
+                document.add(observationsTable);
+
+
                 try {
                         // Crear una tabla con dos columnas y establecer los anchos (80% para texto, 20%
                         // para QR)
