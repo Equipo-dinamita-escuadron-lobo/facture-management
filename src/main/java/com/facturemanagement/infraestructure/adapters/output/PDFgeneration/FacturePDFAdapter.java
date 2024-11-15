@@ -337,12 +337,7 @@ public byte[] generateQR(Facture facture) {
 
                 document.add(new Paragraph(" "));
 
-                document.add(new Paragraph("**FACTURA GENERADA CON FINES EDUCATIVOS, NO TIENE NINGUN VALOR LEGAL**")
-                                .setFontColor(Color.RED).setTextAlignment(TextAlignment.CENTER));
-
-                document.close();
-
-
+                // Tabla para el campo de Observaciones
                 Table observationsTable = new Table(1); // Tabla de una sola columna
                 observationsTable.setWidthPercent(100); // Configura la tabla al 100% del ancho
 
@@ -360,7 +355,7 @@ public byte[] generateQR(Facture facture) {
                 // Añadir la tabla de observaciones al documento
                 document.add(observationsTable);
 
-
+                document.add(new Paragraph(" "));
                 try {
                         // Crear una tabla con dos columnas y establecer los anchos (80% para texto, 20%
                         // para QR)
@@ -391,6 +386,16 @@ public byte[] generateQR(Facture facture) {
                 } catch (Exception e) {
                         e.printStackTrace();
                 }
+
+                
+                document.add(new Paragraph("**FACTURA GENERADA CON FINES EDUCATIVOS, NO TIENE NINGUN VALOR LEGAL**")
+                                .setFontColor(Color.RED).setTextAlignment(TextAlignment.CENTER));
+
+
+                document.close();
+
+
+                
 
                 return baos.toByteArray();
         }
