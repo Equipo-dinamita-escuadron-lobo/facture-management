@@ -251,9 +251,6 @@ public byte[] generateQR(Facture facture) {
                 document.add(enterpriseDetails);
                 document.add(new Paragraph(" "));
 
-                // Añadir codigo CUFE
-                document.add(boldText("CODIGO CUFE: ", generateCUFE()).setTextAlignment(TextAlignment.CENTER)
-                                .setFontSize(8));
 
                 // Tabla detalles de factura
                 Table invoiceDetails = new Table(2);
@@ -344,6 +341,38 @@ public byte[] generateQR(Facture facture) {
                                 .setFontColor(Color.RED).setTextAlignment(TextAlignment.CENTER));
 
                 document.close();
+
+
+                try {
+                        // Crear una tabla con dos columnas y establecer los anchos (80% para texto, 20%
+                        // para QR)
+                        Table table = new Table(new float[] { 4, 1 });
+                        table.setWidth(UnitValue.createPercentValue(100)); // Ancho total de la tabla al 100%
+
+                        // Agregar el texto en la primera columna con tamaño de letra más pequeño
+                        Paragraph textoFactura = new Paragraph(this.textForFacture(facture)).setBold()
+                                        .setTextAlignment(TextAlignment.LEFT)
+                                        .setFontSize(8); // Tamaño de fuente más pequeño
+                        table.addCell(new Cell().add(textoFactura).setBackgroundColor(Color.LIGHT_GRAY));
+
+                        // Generar la imagen del código QR y establecer su tamaño aproximado
+                        Image qrCodeImage = generateQRCodeImage(
+                                        "http://contables.unicauca.edu.co/#/general/facturaQR/" + facture.getFactId());
+
+                        // Crear una celda para el QR y aplicar escalado manual para que ocupe todo el
+                        // espacio
+                        Cell qrCell = new Cell();
+
+                        // Añadir la imagen QR a la celda
+                        qrCell.add(qrCodeImage).setPadding(0).setMargins(0, 0, 0, 0);
+                        table.addCell(qrCell);
+
+                        // Agregar la tabla al documento
+                        document.add(table);
+
+                } catch (Exception e) {
+                        e.printStackTrace();
+                }
 
                 return baos.toByteArray();
         }
