@@ -16,7 +16,7 @@ import lombok.RequiredArgsConstructor;
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig{
-     @Autowired
+    @Autowired
     private JwtAuthConverter jwtAuthConverter;
 
     @Bean
