@@ -20,8 +20,8 @@ public class SwaggerConfiguration {
                                 .scheme("bearer")
                                 .bearerFormat("JWT")))
                 .addSecurityItem(new SecurityRequirement().addList("bearer-jwt"))
-                .info(new Info().title("Thirds Management API")
-                        .description("Api para gestión de terceros")
+                .info(new Info().title("Facture Management API")
+                        .description("Api para gestión de facturas")
                         .version("1.0"));
     }
 }
