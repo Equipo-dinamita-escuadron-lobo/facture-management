@@ -62,111 +62,124 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
         private HttpRequest request = new HttpRequest();
         private Random random = new Random();
 
+        /**
+         * Genera un arreglo de bytes que representa una imagen JPEG
+         * que contiene un c digo QR para la factura dada.
+         *
+         * @param facture la factura para la que se va a generar el
+         *                c digo QR.
+         * @return un arreglo de bytes que representa la imagen JPEG
+         *         generada.
+         */
         @Override
-public byte[] generateQR(Facture facture) {
-    try {
-        Third third = this.thirdData(facture);
-        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-        Date date = new Date();
-        Enterprise enterprise = this.enterpriseData(facture);
+        public byte[] generateQR(Facture facture) {
+                try {
+                        Third third = this.thirdData(facture);
+                        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+                        Date date = new Date();
+                        Enterprise enterprise = this.enterpriseData(facture);
 
+                        // Tamaño de la imagen
+                        int width = 800;
+                        int height = 600;
+                        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+                        Graphics2D g2d = image.createGraphics();
 
+                        // Fondo blanco
+                        g2d.setColor(java.awt.Color.white);
+                        g2d.fillRect(0, 0, width, height);
+                        g2d.setColor(java.awt.Color.black);
 
+                        Image logo = null;
+                        try {
+                                // Cargar imagen con iText
+                                BufferedImage bufferedImage = ImageIO.read(new URL("yourImageUrlHere"));
 
+                                // Convertir BufferedImage (java.awt.Image) a Image de iText
+                                logo = new Image(ImageDataFactory.create(bufferedImage, null));
 
-        // Tamaño de la imagen
-        int width = 800;
-        int height = 600;
-        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-        Graphics2D g2d = image.createGraphics();
+                                // Opcional: Cambiar el tamaño de la imagen
+                                logo.setWidth(100);
 
-        // Fondo blanco
-        g2d.setColor(java.awt.Color.white);
-        g2d.fillRect(0, 0, width, height);
-        g2d.setColor(java.awt.Color.black);
+                                // Dibujar la imagen utilizando Graphics2D (necesitamos convertir la imagen de
+                                // iText a java.awt.Image)
+                                BufferedImage awtLogo = bufferedImage; // ya que bufferedImage es de tipo java.awt.Image
+                                g2d.drawImage(awtLogo, 50, 50, null); // Usamos null porque no necesitamos un
+                                                                      // ImageObserver
+                        } catch (MalformedURLException e) {
+                                e.printStackTrace();
+                        } catch (IOException e) {
+                                e.printStackTrace();
+                        }
 
-        
-        Image logo = null;
-        try {
-            // Cargar imagen con iText
-            BufferedImage bufferedImage = ImageIO.read(new URL("yourImageUrlHere"));
-            
-            // Convertir BufferedImage (java.awt.Image) a Image de iText
-            logo = new Image(ImageDataFactory.create(bufferedImage, null));
-            
-            // Opcional: Cambiar el tamaño de la imagen
-            logo.setWidth(100);
-            
-            // Dibujar la imagen utilizando Graphics2D (necesitamos convertir la imagen de iText a java.awt.Image)
-            BufferedImage awtLogo = bufferedImage;  // ya que bufferedImage es de tipo java.awt.Image
-            g2d.drawImage(awtLogo, 50, 50, null);  // Usamos null porque no necesitamos un ImageObserver
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+                        // Título
+                        g2d.setFont(new Font("Arial", Font.BOLD, 24));
+                        g2d.drawString("Factura de venta", 250, 50);
+
+                        // Detalles de la factura
+                        g2d.setFont(new Font("Arial", Font.PLAIN, 14));
+                        g2d.drawString("Número de Factura: " + facture.getFactCode(), 50, 100);
+                        g2d.drawString("Fecha: " + dateFormat.format(date), 600, 100);
+                        g2d.drawString("Cliente: " + third.getNames() + " " + third.getLastNames(), 50, 130);
+
+                        // Encabezado de la tabla de productos
+                        int tableStartY = 160;
+                        int rowHeight = 30;
+                        g2d.setFont(new Font("Arial", Font.BOLD, 14));
+                        g2d.drawString("Código", 50, tableStartY);
+                        g2d.drawString("Descripción", 150, tableStartY);
+                        g2d.drawString("Cantidad", 300, tableStartY);
+                        g2d.drawString("Precio Unitario", 390, tableStartY);
+                        g2d.drawString("Descuento", 510, tableStartY);
+                        g2d.drawString("IVA", 600, tableStartY);
+                        g2d.drawString("Subtotal", 700, tableStartY);
+
+                        // Línea de separación
+                        g2d.drawLine(50, tableStartY + 5, 750, tableStartY + 5);
+
+                        // Filas de la tabla de productos
+                        g2d.setFont(new Font("Arial", Font.PLAIN, 12));
+                        int currentY = tableStartY + rowHeight;
+                        for (Product p : facture.getFactProducts()) {
+                                g2d.drawString(p.getCode(), 50, currentY);
+                                g2d.drawString(p.getDescription(), 150, currentY);
+                                g2d.drawString(String.valueOf(p.getAmount()), 300, currentY);
+                                g2d.drawString(String.format("%.2f", p.getUnitPrice()), 400, currentY);
+                                g2d.drawString(String.format("%.2f", p.getDescount()), 500, currentY);
+                                g2d.drawString(String.format("%.2f", p.getVat()), 600, currentY);
+                                g2d.drawString(String.format("%.2f", p.getSubtotal()), 700, currentY);
+                                currentY += rowHeight;
+                        }
+
+                        // Total de la factura
+                        g2d.setFont(new Font("Arial", Font.BOLD, 14));
+                        g2d.drawString("Subtotal: " + facture.getFactSubtotals(), 550, currentY + 20);
+                        g2d.drawString("Descuento: " + facture.getDescounts(), 400, currentY + 20);
+                        g2d.drawString("IVA: " + facture.getFacSalesTax(), 250, currentY + 20);
+                        g2d.drawString("Total: " + (facture.getFacSalesTax() + facture.getFactSubtotals()
+                                        - facture.getFacWithholdingSource()), 550, currentY + 50);
+
+                        // Liberar recursos gráficos
+                        g2d.dispose();
+
+                        // Convertir la imagen a bytes
+                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        ImageIO.write(image, "jpeg", baos);
+                        return baos.toByteArray();
+                } catch (Exception e) {
+                        e.printStackTrace();
+                        return null;
+                }
         }
 
-        // Título
-        g2d.setFont(new Font("Arial", Font.BOLD, 24));
-        g2d.drawString("Factura de venta", 250, 50);
-
-        // Detalles de la factura
-        g2d.setFont(new Font("Arial", Font.PLAIN, 14));
-        g2d.drawString("Número de Factura: " + facture.getFactCode(), 50, 100);
-        g2d.drawString("Fecha: " + dateFormat.format(date), 600, 100);
-        g2d.drawString("Cliente: " + third.getNames() + " " + third.getLastNames(), 50, 130);
-
-        // Encabezado de la tabla de productos
-        int tableStartY = 160;
-        int rowHeight = 30;
-        g2d.setFont(new Font("Arial", Font.BOLD, 14));
-        g2d.drawString("Código", 50, tableStartY);
-        g2d.drawString("Descripción", 150, tableStartY);
-        g2d.drawString("Cantidad", 300, tableStartY);
-        g2d.drawString("Precio Unitario", 390, tableStartY);
-        g2d.drawString("Descuento", 510, tableStartY);
-        g2d.drawString("IVA", 600, tableStartY);
-        g2d.drawString("Subtotal", 700, tableStartY);
-
-        // Línea de separación
-        g2d.drawLine(50, tableStartY + 5, 750, tableStartY + 5);
-
-        // Filas de la tabla de productos
-        g2d.setFont(new Font("Arial", Font.PLAIN, 12));
-        int currentY = tableStartY + rowHeight;
-        for (Product p : facture.getFactProducts()) {
-            g2d.drawString(p.getCode(), 50, currentY);
-            g2d.drawString(p.getDescription(), 150, currentY);
-            g2d.drawString(String.valueOf(p.getAmount()), 300, currentY);
-            g2d.drawString(String.format("%.2f", p.getUnitPrice()), 400, currentY);
-            g2d.drawString(String.format("%.2f", p.getDescount()), 500, currentY);
-            g2d.drawString(String.format("%.2f", p.getVat()), 600, currentY);
-            g2d.drawString(String.format("%.2f", p.getSubtotal()), 700, currentY);
-            currentY += rowHeight;
-        }
-
-        // Total de la factura
-        g2d.setFont(new Font("Arial", Font.BOLD, 14));
-        g2d.drawString("Subtotal: " + facture.getFactSubtotals(), 550, currentY + 20);
-        g2d.drawString("Descuento: " + facture.getDescounts(), 400, currentY + 20);
-        g2d.drawString("IVA: " + facture.getFacSalesTax(), 250, currentY + 20);
-        g2d.drawString("Total: " + (facture.getFacSalesTax() + facture.getFactSubtotals()
-                        - facture.getFacWithholdingSource()), 550, currentY + 50);
-
-        // Liberar recursos gráficos
-        g2d.dispose();
-
-        // Convertir la imagen a bytes
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ImageIO.write(image, "jpeg", baos);
-        return baos.toByteArray();
-    } catch (Exception e) {
-        e.printStackTrace();
-        return null;
-    }
-}
-
-
+        /**
+         * Genera un PDF para la factura dada. La responsabilidad de
+         * guardar el PDF es del puerto de salida.
+         *
+         * @param facture La factura para la que se va a generar el PDF.
+         * @return Un arreglo de bytes que representa el PDF generado.
+         * @throws IOException Si ocurre un error al generar el PDF.
+         */
         @Override
         public byte[] generatePDF(Facture facture) {
                 try {
@@ -177,6 +190,14 @@ public byte[] generateQR(Facture facture) {
                 }
         }
 
+        /**
+         * Genera un PDF para la factura dada. La responsabilidad de
+         * guardar el PDF es del puerto de salida.
+         *
+         * @param facture La factura para la que se va a generar el PDF.
+         * @return Un arreglo de bytes que representa el PDF generado.
+         * @throws IOException Si ocurre un error al generar el PDF.
+         */
         private byte[] generateInvoicePdf(Facture facture) throws IOException {
                 if (facture.getFactureType().toString().equals("Venta")) {
                         return generateInvoiceSalePdf(facture);
@@ -250,7 +271,6 @@ public byte[] generateQR(Facture facture) {
                 enterpriseDetails.addCell(new Cell().add(enterpriseData).setBorder(Border.NO_BORDER));
                 document.add(enterpriseDetails);
                 document.add(new Paragraph(" "));
-
 
                 // Tabla detalles de factura
                 Table invoiceDetails = new Table(2);
@@ -387,19 +407,21 @@ public byte[] generateQR(Facture facture) {
                         e.printStackTrace();
                 }
 
-                
                 document.add(new Paragraph("**FACTURA GENERADA CON FINES EDUCATIVOS, NO TIENE NINGUN VALOR LEGAL**")
                                 .setFontColor(Color.RED).setTextAlignment(TextAlignment.CENTER));
 
-
                 document.close();
-
-
-                
 
                 return baos.toByteArray();
         }
 
+        /**
+         * Genera un PDF para una factura de venta.
+         *
+         * @param facture Factura de la que se va a generar el PDF.
+         * @return El contenido del PDF en un arreglo de bytes.
+         * @throws IOException Si ocurre un error al generar el PDF.
+         */
         private byte[] generateInvoiceSalePdf(Facture facture) throws IOException {
                 float tamañoEncabezadosTablas = 8;
                 if (facture.getDescounts() == null) {
@@ -610,10 +632,9 @@ public byte[] generateQR(Facture facture) {
                         itemTable.addCell(new Cell().add(new Paragraph(String.valueOf(p.getAmount()))));
                         itemTable.addCell(new Cell().add(new Paragraph(currencyFormat.format(p.getUnitPrice()))));
 
-                        Double descountValue= (p.getUnitPrice() * (p.getDescount() / 100)) * p.getAmount();
-                        Double vatValue = ((p.getAmount() * p.getUnitPrice()) -descountValue) * p.getVat();
+                        Double descountValue = (p.getUnitPrice() * (p.getDescount() / 100)) * p.getAmount();
+                        Double vatValue = ((p.getAmount() * p.getUnitPrice()) - descountValue) * p.getVat();
                         itemTable.addCell(new Cell().add(new Paragraph(currencyFormat.format(descountValue))));
-
 
                         itemTable.addCell(new Cell().add(new Paragraph((p.getDescount()) + "%")));
 
@@ -668,7 +689,6 @@ public byte[] generateQR(Facture facture) {
                                 .add(new Paragraph("VALOR DOCUMENTO").setBold().setFontSize(tamañoEncabezadosTablas))
                                 .setBackgroundColor(Color.LIGHT_GRAY).setTextAlignment(TextAlignment.CENTER));
 
-                
                 summaryTable.addCell(new Cell().add(new Paragraph(currencyFormat.format(facture.getFactSubtotals())))
                                 .setTextAlignment(TextAlignment.CENTER));
 
@@ -679,8 +699,7 @@ public byte[] generateQR(Facture facture) {
                                                 .setTextAlignment(TextAlignment.CENTER));
                 summaryTable.addCell(new Cell()
                                 .add(new Paragraph(currencyFormat
-                                                .format(facture.getFactSubtotals() + facture.getFacSalesTax()
-                                                                )))
+                                                .format(facture.getFactSubtotals() + facture.getFacSalesTax())))
                                 .setTextAlignment(TextAlignment.CENTER));
                 summaryTable.addCell(
                                 new Cell().add(new Paragraph(currencyFormat.format(facture.getFacWithholdingSource())))
@@ -689,8 +708,7 @@ public byte[] generateQR(Facture facture) {
                 summaryTable.addCell(new Cell()
                                 .add(new Paragraph(currencyFormat
                                                 .format(facture.getFactSubtotals() + facture.getFacSalesTax()
-                                                                - facture.getFacWithholdingSource()
-                                                                )))
+                                                                - facture.getFacWithholdingSource())))
                                 .setTextAlignment(TextAlignment.CENTER));
 
                 // Agregar la tabla de resumen al documento
@@ -753,6 +771,15 @@ public byte[] generateQR(Facture facture) {
                 return baos.toByteArray();
         }
 
+        /**
+         * Genera una imagen de un código QR a partir de una cadena de texto,
+         * utilizando la librería ZXing.
+         *
+         * @param text La cadena de texto que se va a codificar en el código QR.
+         * @return La imagen generada.
+         * @throws WriterException Si ocurre un error al escribir el código QR.
+         * @throws IOException     Si ocurre un error al escribir la imagen.
+         */
         private Image generateQRCodeImage(String text) throws WriterException, IOException {
                 QRCodeWriter qrCodeWriter = new QRCodeWriter();
                 BitMatrix bitMatrix = qrCodeWriter.encode(text, BarcodeFormat.QR_CODE, 100, 100);
@@ -772,6 +799,15 @@ public byte[] generateQR(Facture facture) {
                 return new Image(ImageDataFactory.create(bais.readAllBytes()));
         }
 
+        /**
+         * Obtiene la informacion de la empresa asociada a una factura,
+         * realizando una solicitud GET a la API de contables con el ID de
+         * la empresa.
+         *
+         * @param facture La factura para la que se va a obtener la informaci n
+         *                de la empresa.
+         * @return Un objeto Enterprise con la informaci n de la empresa.
+         */
         private Enterprise enterpriseData(Facture facture) {
                 JsonNode jsonResult = this.request.getRequest(
                                 "http://contables.unicauca.edu.co/api/enterprises/enterprise/" + facture.getEntId(),
@@ -785,6 +821,15 @@ public byte[] generateQR(Facture facture) {
                                 jsonResult.get("logo").asText());
         }
 
+        /**
+         * Calcula el dígito de verificación para un NIT dado. La fórmula
+         * utilizada es la definida en el Decreto 2785 de 2005 del Ministerio
+         * de Hacienda y Crédito Público de Colombia.
+         *
+         * @param nit El NIT para el que se va a calcular el dígito de
+         *            verificación.
+         * @return El dígito de verificación calculado.
+         */
         private int calcularDigitoVerificacion(String nit) {
                 // Factores según la posición (de derecha a izquierda)
                 int[] factores = { 71, 67, 59, 53, 47, 43, 41, 37, 29, 23, 19, 17, 13, 7, 3 };
@@ -809,6 +854,12 @@ public byte[] generateQR(Facture facture) {
                 }
         }
 
+        /**
+         * Genera un número aleatorio de n dígitos.
+         * 
+         * @param n El número de dígitos que se desean generar.
+         * @return Un String que representa el número aleatorio generado.
+         */
         private String generateNumberAleatory(int n) {
                 // Prefijo fijo
                 StringBuilder number = new StringBuilder("");
@@ -824,6 +875,11 @@ public byte[] generateQR(Facture facture) {
                 return number.toString();
         }
 
+        /**
+         * Devuelve la fecha actual en formato "yyyyMMdd".
+         * 
+         * @return La fecha actual en formato "yyyyMMdd".
+         */
         private String getFormattedDate() {
                 // Obtener la fecha actual
                 LocalDate fechaActual = LocalDate.now();
@@ -833,11 +889,38 @@ public byte[] generateQR(Facture facture) {
                 return fechaActual.format(formatter);
         }
 
+        /**
+         * Genera el prefijo para la factura, tomando los 3 primeros caracteres del
+         * nombre
+         * de la empresa asociada a la factura y convirtiendo a mayúsculas.
+         * 
+         * @param facture La factura para la que se va a generar el prefijo.
+         * @return El prefijo en mayúsculas.
+         */
         private String prefijoFacture(Facture facture) {
                 String prefijo = enterpriseData(facture).getEntName().substring(0, 3);
                 return prefijo.toUpperCase();
         }
 
+        /**
+         * Genera un texto descriptivo para una factura de venta, incorporando
+         * referencias legales
+         * y otra información relevante.
+         *
+         * Este texto incluye una declaración que la factura está sujeta a las
+         * regulaciones
+         * concernientes a las letras de cambio (Artículo 5 Ley 1231 de 2008).
+         * Confirma que el comprador ha recibido los bienes o servicios descritos.
+         *
+         * El texto también especifica un número de autorización, fecha de aprobación,
+         * prefijo de empresa y un período de validez. Incluye información sobre la
+         * facturación de la DIAN, responsabilidad del IVA, actividad económica,
+         * y un código CUFE único.
+         *
+         * @param facture La entidad de factura para la cual se genera el texto.
+         * @return La cadena de texto formateada que contiene los detalles de la
+         *         factura.
+         */
         private String textForFacture(Facture facture) {
                 String textoFacture = "A esta factura de venta aplican las normas relativas a la letra de cambio (artículo 5 Ley 1231 de 2008).\n"
                                 +
@@ -852,6 +935,25 @@ public byte[] generateQR(Facture facture) {
                 return textoFacture;
         }
 
+        /**
+         * Genera un texto descriptivo para una factura de compra, incorporando
+         * referencias legales
+         * y otra información relevante.
+         *
+         * Este texto incluye una declaración que la factura está sujeta a las
+         * regulaciones
+         * concernientes a las letras de cambio (Artículo 5 Ley 1231 de 2008).
+         * Confirma que el comprador ha recibido los bienes o servicios descritos.
+         *
+         * El texto también especifica un número de autorización, fecha de aprobación,
+         * prefijo de empresa y un período de validez. Incluye información sobre la
+         * facturación de la DIAN, responsabilidad del IVA, actividad económica,
+         * y un código CUFE único.
+         * 
+         * @param facture La entidad de factura para la cual se genera el texto.
+         * @return La cadena de texto formateada que contiene los detalles de la
+         *         factura.
+         */
         private String textForInvoiceFacture(Facture facture) {
                 String textoFacture = "A esta factura de compra aplican las normas relativas a la letra de cambio (artículo 5 Ley 1231 de 2008).\n"
                                 +
@@ -866,6 +968,22 @@ public byte[] generateQR(Facture facture) {
                 return textoFacture;
         }
 
+        /**
+         * Recupera y construye un objeto Tercero desde una API externa utilizando el ID
+         * de tercero de la factura proporcionada.
+         *
+         * Este método envía una solicitud GET al punto de conexión de la API
+         * especificado con el ID de tercero obtenido
+         * del objeto Factura proporcionado. Analiza la respuesta JSON para extraer
+         * información relevante sobre el tercero,
+         * como número de verificación, nombre, dirección y detalles de contacto, y
+         * construye un objeto Tercero con estos datos.
+         *
+         * @param factura El objeto Factura cuyo ID de tercero se utilizará para obtener
+         *                los detalles del tercero.
+         * @return Un objeto Tercero poblado con detalles obtenidos de la respuesta de
+         *         la API.
+         */
         private Third thirdData(Facture facture) {
                 JsonNode jsonResult = this.request
                                 .getRequest("http://contables.unicauca.edu.co/api/thirds/third?thId="

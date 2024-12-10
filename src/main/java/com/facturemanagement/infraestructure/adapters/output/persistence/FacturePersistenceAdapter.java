@@ -23,7 +23,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class FacturePersistenceAdapter implements FactureCreatedOutputPort, FactureGetOutputPort{
+public class FacturePersistenceAdapter implements FactureCreatedOutputPort, FactureGetOutputPort {
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -33,15 +33,21 @@ public class FacturePersistenceAdapter implements FactureCreatedOutputPort, Fact
 
     private final FacturePersistenceMapper facturePersistenceMapper;
 
+    /**
+     * Recupera el código de factura máximo de la base de datos. Este método se
+     * utiliza para
+     * generar el siguiente código de factura al crear una nueva factura.
+     *
+     * @return el código de factura máximo o null si no existen facturas
+     */
     @Override
     public Long findMaxFactCode() {
-        return factureRepository.findMaxFactCode(); // Implement your logic to get the max factCode
+        return factureRepository.findMaxFactCode();
     }
 
     @Override
     @Transactional
     public Facture saveFacture(Facture facture) {
-        System.out.println("Entrando a saveFacture");
 
         if (facture.getFactProducts().isEmpty()) {
             return null;
@@ -52,14 +58,14 @@ public class FacturePersistenceAdapter implements FactureCreatedOutputPort, Fact
         FactureEntity factureEntity = this.facturePersistenceMapper.toFactureEntity(facture);
 
         Set<Long> productIds = facture.getFactProducts().stream()
-                                      .map(Product::getProductId)
-                                      .collect(Collectors.toSet());
+                .map(Product::getProductId)
+                .collect(Collectors.toSet());
         Set<ProductEntity> products = productRepository.findAllById(productIds).stream().collect(Collectors.toSet());
 
-        //listar los id de los producros que ya estan en la base de datos
+        // listar los id de los producros que ya estan en la base de datos
         Set<Long> productIdsExist = products.stream()
-                                        .map(ProductEntity::getProductId)
-                                        .collect(Collectors.toSet());
+                .map(ProductEntity::getProductId)
+                .collect(Collectors.toSet());
 
         factureEntity.getFactProducts().clear();
 
@@ -71,17 +77,23 @@ public class FacturePersistenceAdapter implements FactureCreatedOutputPort, Fact
 
         factureEntity.getFactProducts().addAll(products);
 
-
         factureRepository.save(factureEntity);
 
         return this.convertToFacture(factureEntity);
     }
 
+    /**
+     * Recupera una Factura por su ID desde la base de datos.
+     *
+     * @param factId el ID de la Factura a recuperar.
+     * @return un Optional que contiene la Factura si se encuentra, o un Optional
+     *         vacío
+     *         si no se encuentra ninguna Factura con el ID dado.
+     */
     @Override
     public Optional<Facture> getFactureById(Long factId) {
-        System.out.println("Entrando a getFactureById");
-        Optional<FactureEntity> factureOptional =  this.factureRepository.findById(factId);
-        if(factureOptional.isEmpty()){
+        Optional<FactureEntity> factureOptional = this.factureRepository.findById(factId);
+        if (factureOptional.isEmpty()) {
             return Optional.empty();
         }
 
@@ -93,29 +105,61 @@ public class FacturePersistenceAdapter implements FactureCreatedOutputPort, Fact
         return Optional.of(facture);
     }
 
+    /**
+     * Recupera una lista paginada de todas las facturas asociadas a una empresa
+     * específica.
+     *
+     * @param entId    el ID de la empresa cuyas facturas se van a recuperar
+     * @param pageable la configuración de paginación
+     * @return una lista paginada de facturas asociadas al ID de empresa dado
+     */
     @Override
     public Page<Facture> getAllFacturesBy(String entId, Pageable pageable) {
-        System.out.println("Entrando a getAllFacturesBy");
         Page<FactureEntity> pageFactureEntities = this.factureRepository.findAllByEnterpriseId(entId, pageable);
         return pageFactureEntities.map(this::convertToFacture);
     }
 
+    /**
+     * Recupera una lista paginada de todas las facturas de ventas asociadas a una
+     * empresa específica.
+     *
+     * @param entId    el ID de la empresa cuyas facturas de ventas se van a
+     *                 recuperar
+     * @param pageable la configuración de paginación
+     * @return una lista paginada de facturas de ventas asociadas al ID de empresa
+     *         dado
+     */
     @Override
     public Page<Facture> getAllSalesFacturesBy(String entId, Pageable pageable) {
-        System.out.println("Entrando a getAllSalesFacturesBy");
-        Page<FactureEntity> pageFactureEntities = this.factureRepository.findAllSalesFacturesByEnterpriseId(entId, pageable);
+        Page<FactureEntity> pageFactureEntities = this.factureRepository.findAllSalesFacturesByEnterpriseId(entId,
+                pageable);
         return pageFactureEntities.map(this::convertToFacture);
     }
 
+    /**
+     * Recupera una lista paginada de todas las facturas de compras asociadas a una
+     * empresa específica.
+     *
+     * @param entId    el ID de la empresa cuyas facturas de compras se van a
+     *                 recuperar
+     * @param pageable la configuración de paginación
+     * @return una lista paginada de facturas de compras asociadas al ID de empresa
+     *         dado
+     */
     @Override
     public Page<Facture> getAllShoppingFacturesBy(String entId, Pageable pageable) {
-        System.out.println("Entrando a getAllShoppingFacturesBy");
-        Page<FactureEntity> pageFactureEntities = this.factureRepository.findAllShoppingFacturesByEnterpriseId(entId, pageable);
+        Page<FactureEntity> pageFactureEntities = this.factureRepository.findAllShoppingFacturesByEnterpriseId(entId,
+                pageable);
         return pageFactureEntities.map(this::convertToFacture);
     }
 
-    private Facture convertToFacture(FactureEntity factureEntity){
-        System.out.println("\n Entrando a convertir en objeto factura\n");
+    /**
+     * Convierte una entidad de factura en un objeto de negocio Facture.
+     *
+     * @param factureEntity la entidad de factura a convertir
+     * @return el objeto de negocio Facture correspondiente
+     */
+    private Facture convertToFacture(FactureEntity factureEntity) {
         factureEntity.setFactProducts(this.productRepository.getProductsByFactureId(factureEntity.getFactId()));
         return this.facturePersistenceMapper.toFacture(factureEntity);
     }

@@ -14,6 +14,13 @@ public class WebCofiguration implements WebMvcConfigurer {
 
     private final TenantInterceptor tenantInterceptor;
 
+    /**
+     * Agrega el interceptor del inquilino al registro, que es responsable de
+     * establecer el inquilino en el contexto local de hilo basado en la solicitud
+     * actual.
+     * 
+     * @param registry el registro al que se agrega el interceptor
+     */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addWebRequestInterceptor(tenantInterceptor);

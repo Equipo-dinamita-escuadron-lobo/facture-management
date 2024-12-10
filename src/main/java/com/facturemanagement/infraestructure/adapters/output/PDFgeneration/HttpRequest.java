@@ -14,6 +14,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class HttpRequest {
 
+    /**
+     * Realiza una solicitud GET a la URL dada con el token de autenticaci n
+     * proporcionado por jwtUtils.
+     *
+     * @param url La URL a la que se va a realizar la solicitud.
+     * @param jwtUtils El objeto que proporciona el token de autenticaci n.
+     * @return El contenido de la respuesta como un objeto JsonNode. Si ocurre un
+     *         error al leer el contenido de la respuesta, se devuelve null.
+     */
     public JsonNode getRequest(String url,IJwtUtils jwtUtils){
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
