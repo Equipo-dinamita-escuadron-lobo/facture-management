@@ -14,6 +14,14 @@ public class CreateFactureService implements CreateFactureUseCase {
 
     private final FactureEventPublisherAdapter factureEventPublisher;
 
+    /**
+     * Crea una nueva factura con un código de factura único, la guarda en la base
+     * de datos
+     * y publica un evento FacturaCreada.
+     *
+     * @param factura el objeto de factura a crear y guardar
+     * @return el objeto de factura guardado con un código de factura asignado
+     */
     @Override
     public Facture createFacture(Facture facture) {
         // Generar el siguiente factCode
@@ -22,12 +30,18 @@ public class CreateFactureService implements CreateFactureUseCase {
         System.out.println(facture);
         // Guardar la factura
         facture = factureCreatedOutputPort.saveFacture(facture);
-        
+
         // Publicar el evento de creación de factura
         factureEventPublisher.publishFactureCreatedEvent(new FactureCreatedEvent(facture.getFactId()));
         return facture;
     }
 
+    /**
+     * Genera el siguiente factCode a partir del máximo factCode existente en
+     * la base de datos.
+     *
+     * @return el siguiente factCode a asignar a la factura
+     */
     private Long generateNextFactCode() {
         // Obtener el factCode máximo desde el repositorio
         Long lastFactCode = factureCreatedOutputPort.findMaxFactCode();

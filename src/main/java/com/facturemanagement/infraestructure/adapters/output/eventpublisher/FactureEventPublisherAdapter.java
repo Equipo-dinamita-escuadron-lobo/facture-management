@@ -9,15 +9,25 @@ import com.facturemanagement.domain.event.FacturePDFGeneratedEvent;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class FactureEventPublisherAdapter implements FactureEventPublisher{
-    
+public class FactureEventPublisherAdapter implements FactureEventPublisher {
+
     private final ApplicationEventPublisher applicationEventPublisher;
 
+    /**
+     * Publica un evento FacturaCreada a todos los oyentes interesados.
+     * 
+     * @param evento el evento a publicar
+     */
     @Override
     public void publishFactureCreatedEvent(FactureCreatedEvent event) {
         applicationEventPublisher.publishEvent(event);
     }
 
+    /**
+     * Publica un evento FacturaPDFGenerada a todos los oyentes interesados.
+     * 
+     * @param evento el evento a publicar
+     */
     @Override
     public void publishFactureGeneratePDFEvent(FacturePDFGeneratedEvent event) {
         applicationEventPublisher.publishEvent(event);

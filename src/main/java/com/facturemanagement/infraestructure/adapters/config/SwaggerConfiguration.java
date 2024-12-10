@@ -11,17 +11,26 @@ import io.swagger.v3.oas.models.security.SecurityScheme;
 
 @Configuration
 public class SwaggerConfiguration {
-     @Bean
-    public OpenAPI customizeOpenAPI() {
-        return new OpenAPI()
-                .components(new Components()
-                        .addSecuritySchemes("bearer-jwt", new SecurityScheme()
-                                .type(SecurityScheme.Type.HTTP)
-                                .scheme("bearer")
-                                .bearerFormat("JWT")))
-                .addSecurityItem(new SecurityRequirement().addList("bearer-jwt"))
-                .info(new Info().title("Facture Management API")
-                        .description("Api para gestión de facturas")
-                        .version("1.0"));
-    }
+        /**
+         * Personaliza la configuración de OpenAPI de la API.
+         *
+         * Agrega un requisito de seguridad de tipo Bearer JWT HTTP y establece el
+         * título, descripción y
+         * versión de la API.
+         *
+         * @return la configuración personalizada de OpenAPI
+         */
+        @Bean
+        public OpenAPI customizeOpenAPI() {
+                return new OpenAPI()
+                                .components(new Components()
+                                                .addSecuritySchemes("bearer-jwt", new SecurityScheme()
+                                                                .type(SecurityScheme.Type.HTTP)
+                                                                .scheme("bearer")
+                                                                .bearerFormat("JWT")))
+                                .addSecurityItem(new SecurityRequirement().addList("bearer-jwt"))
+                                .info(new Info().title("Facture Management API")
+                                                .description("Api para gestión de facturas")
+                                                .version("1.0"));
+        }
 }
