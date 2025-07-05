@@ -1,6 +1,5 @@
 package com.facturemanagement.infraestructure.adapters.input.rest;
 
-import java.awt.List;
 import java.io.ByteArrayInputStream;
 
 import org.springframework.core.io.InputStreamResource;
@@ -24,8 +23,6 @@ import com.facturemanagement.infraestructure.adapters.input.rest.data.request.Fa
 import com.facturemanagement.infraestructure.adapters.input.rest.data.response.FactureGetResponse;
 import com.facturemanagement.infraestructure.adapters.input.rest.data.response.FactureListResponse;
 import com.facturemanagement.infraestructure.adapters.input.rest.mapper.FactureRestMapper;
-import com.itextpdf.kernel.pdf.PdfWriter;
-import com.itextpdf.layout.element.Image;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.swagger.v3.oas.annotations.Operation;
