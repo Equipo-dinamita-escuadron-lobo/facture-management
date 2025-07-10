@@ -56,3 +56,7 @@ management:
   health:
     circuitbreakers:
       enabled: true
+  endpoint:
+    health:
+      probes:
+        enabled: true
