@@ -47,6 +47,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.hibernate.metamodel.model.domain.DomainType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -62,6 +64,8 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
         private HttpRequest request = new HttpRequest();
         private Random random = new Random();
 
+        @Value("${baseUrl}")
+        private String baseUrl;
         /**
          * Genera un arreglo de bytes que representa una imagen JPEG
          * que contiene un c digo QR para la factura dada.
@@ -810,7 +814,7 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
          */
         private Enterprise enterpriseData(Facture facture) {
                 JsonNode jsonResult = this.request.getRequest(
-                                "http://contables.unicauca.edu.co/api/enterprises/enterprise/" + facture.getEntId(),
+                                baseUrl + "/enterprises/enterprise/" + facture.getEntId(),
                                 jwtUtils);
                 String contact = jsonResult.get("email").asText() + " - " + jsonResult.get("phone").asText();
                 return new Enterprise(
@@ -986,7 +990,7 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
          */
         private Third thirdData(Facture facture) {
                 JsonNode jsonResult = this.request
-                                .getRequest("http://contables.unicauca.edu.co/api/thirds/third?thId="
+                                .getRequest(baseUrl + "/thirds/third?thId="
                                                 + facture.getThId(), jwtUtils);
                 JsonNode typeIDJson = jsonResult.get("typeId");
                 return new Third(
