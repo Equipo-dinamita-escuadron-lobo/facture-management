@@ -18,7 +18,7 @@ public class Facture2 {
     private Long thId;
     private Long factCode;
     //private String factObservations;
-    private FactureType2 factureType;
+    //private FactureType2 factureType;
     private Set<Product2> factProducts;
     //private Double descounts; 
     //private Double factSubtotals;
