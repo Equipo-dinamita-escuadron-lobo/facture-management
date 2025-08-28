@@ -16,6 +16,6 @@ public class Product {
     private double descount;
     private String code;
     private double vat;
-    private double unitPrice;
+    private double unitPrice; 
     private double subtotal;
 }
