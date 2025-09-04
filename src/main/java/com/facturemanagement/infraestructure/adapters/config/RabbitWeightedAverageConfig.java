@@ -23,37 +23,26 @@ public class RabbitWeightedAverageConfig {
     public static final String WEIGHTED_AVERAGE_DLQ = "weighted.average.dlq";
     public static final String WEIGHTED_AVERAGE_DLX = "weighted.average.dlx";
 
-    // Retry configuration
-    public static final String WEIGHTED_AVERAGE_RETRY_QUEUE = "weighted.average.retry.queue";
-
     // Dead Letter Exchange
     @Bean
     FanoutExchange weightedAverageDlx() {
         return new FanoutExchange(WEIGHTED_AVERAGE_DLX, true, false);
     }
 
-    // Dead Letter Queue
+    // Dead Letter Queue - for domain/business rule violations (no retry)
     @Bean
     Queue weightedAverageDlq() {
         return QueueBuilder.durable(WEIGHTED_AVERAGE_DLQ).build();
     }
 
-    // Retry Queue
-    @Bean
-    Queue weightedAverageRetryQueue() {
-        return QueueBuilder.durable(WEIGHTED_AVERAGE_RETRY_QUEUE)
-                .withArgument("x-message-ttl", 60000) // 1 minuto TTL
-                .withArgument("x-dead-letter-exchange", WEIGHTED_AVERAGE_EXCHANGE)
-                .withArgument("x-dead-letter-routing-key", "")
-                .build();
-    }
-
-    // Main Queue with DLQ configuration
+    // Main Queue with DLQ configuration - for critical order processing
     @Bean
     Queue weightedAverageQueue() {
         return QueueBuilder.durable(WEIGHTED_AVERAGE_QUEUE)
                 .withArgument("x-dead-letter-exchange", WEIGHTED_AVERAGE_DLX)
                 .withArgument("x-dead-letter-routing-key", "")
+                // Reduced TTL for faster processing as order matters for weighted average
+                .withArgument("x-message-ttl", 300000) // 5 minutes TTL
                 .build();
     }
 
@@ -70,11 +59,6 @@ public class RabbitWeightedAverageConfig {
     @Bean
     Binding weightedAverageDlqBinding() {
         return BindingBuilder.bind(weightedAverageDlq()).to(weightedAverageDlx());
-    }
-
-    @Bean
-    Binding weightedAverageRetryQueueBinding() {
-        return BindingBuilder.bind(weightedAverageRetryQueue()).to(weightedAverageDlx());
     }
 
 }
