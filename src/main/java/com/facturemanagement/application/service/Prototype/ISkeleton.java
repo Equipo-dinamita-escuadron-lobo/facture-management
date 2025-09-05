@@ -5,5 +5,5 @@ public interface ISkeleton {
     void skeletonSaleKardex(Facture2 facture);
     void skeletonReturnOnSaleKardex(Long factCode, Product2 product);
     void skeletonReturnOnPurchaseKardex(Long factCode, Product2 product);
-
+    void skeletonSaleReceipt(Facture2 facture);
 }

@@ -6,10 +6,12 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
 import com.facturemanagement.application.ports.input.IWeightedAverageEventPort;
+import com.facturemanagement.infraestructure.adapters.config.RabbitReceiptConfig;
 import com.facturemanagement.infraestructure.adapters.config.RabbitWeightedAverageConfig;
 import com.facturemanagement.infraestructure.adapters.output.messageBroker.dto.EventDto;
 import com.facturemanagement.infraestructure.adapters.output.messageBroker.dto.KardexPurchaseDtoRequest;
 import com.facturemanagement.infraestructure.adapters.output.messageBroker.dto.KardexSalesDtoRequest;
+import com.facturemanagement.infraestructure.adapters.output.messageBroker.dto.ReceiptSalesDtoRequest;
 import com.facturemanagement.infraestructure.adapters.output.messageBroker.enums.EventFactureType;
 import com.facturemanagement.infraestructure.adapters.security.IJwtUtils;
 
@@ -72,6 +74,20 @@ public class WeightedAverageEventPublisher implements IWeightedAverageEventPort 
         log.info("Publishing weighted average event: {}", kardexDtoRequest.getFactCode());
 
         rabbitTemplate.convertAndSend(RabbitWeightedAverageConfig.WEIGHTED_AVERAGE_EXCHANGE, "", event, message -> {
+            message.getMessageProperties().setHeaders(Map.of(
+                    "x-jwt-token", jwtUtils.getToken(),
+                    "x-tenant-id", jwtUtils.getId()
+            ));
+            return message;
+        });
+    }
+
+    @Override
+    public void publishSaleReceiptEvent(ReceiptSalesDtoRequest receiptSalesDtoRequest) {
+        EventDto<ReceiptSalesDtoRequest, EventFactureType> event = new EventDto<>(EventFactureType.SALE, receiptSalesDtoRequest);
+        log.info("Publishing RECEIPT event: {}", receiptSalesDtoRequest.getFactCode());
+
+        rabbitTemplate.convertAndSend(RabbitReceiptConfig.INVOICE_EXCHANGE, "", event, message -> {
             message.getMessageProperties().setHeaders(Map.of(
                     "x-jwt-token", jwtUtils.getToken(),
                     "x-tenant-id", jwtUtils.getId()

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import com.facturemanagement.application.ports.input.IWeightedAverageEventPort;
 import com.facturemanagement.infraestructure.adapters.output.messageBroker.dto.KardexPurchaseDtoRequest;
 import com.facturemanagement.infraestructure.adapters.output.messageBroker.dto.KardexSalesDtoRequest;
+import com.facturemanagement.infraestructure.adapters.output.messageBroker.dto.ReceiptSalesDtoRequest;
 
 import lombok.RequiredArgsConstructor;
 
@@ -76,6 +77,21 @@ public class Skeleton implements ISkeleton {
         //kardexDtoRequest.setDetails("Factura " + factCode); // No es obligatorio
 
         weightedAverageEventPort.publishReturnOnPurchaseWeightedAverageEvent(kardexDtoRequest);
+    }
+
+    @Override
+    public void skeletonSaleReceipt(Facture2 facture) {
+        ReceiptSalesDtoRequest receiptSalesDtoRequest = new ReceiptSalesDtoRequest();
+        receiptSalesDtoRequest.setFactCode(facture.getFactCode());
+        receiptSalesDtoRequest.setEntId(facture.getEntId());
+        receiptSalesDtoRequest.setThirdId(facture.getThId());
+        receiptSalesDtoRequest.setTotalPay(Long.valueOf(facture.getTotalPay()));
+        receiptSalesDtoRequest.setTotalValue(Long.valueOf(facture.getTotalValue()));
+        receiptSalesDtoRequest.setPendingValue(Long.valueOf(facture.getPendingValue()));
+        receiptSalesDtoRequest.setExpirationDate(facture.getExpirationDate());
+        receiptSalesDtoRequest.setActive(true);
+        
+        weightedAverageEventPort.publishSaleReceiptEvent(receiptSalesDtoRequest);
     }
 
     
