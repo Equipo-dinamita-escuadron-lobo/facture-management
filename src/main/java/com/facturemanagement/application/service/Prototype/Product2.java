@@ -27,7 +27,7 @@ public class Product2 {
 
     public double getBasePrice() {
         // Aplica descuento
-        double priceAfterDiscount = unitPrice - descount;
+        double priceAfterDiscount = unitPrice * (1 - descount / 100.0);
 
         // Suma los porcentajes de impuestos
         int totalTaxPercent = taxPercentage.stream().mapToInt(Integer::intValue).sum();

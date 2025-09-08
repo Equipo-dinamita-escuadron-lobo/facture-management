@@ -33,8 +33,7 @@ public class WeightedAverageEventPublisher implements IWeightedAverageEventPort 
 
         rabbitTemplate.convertAndSend(RabbitWeightedAverageConfig.WEIGHTED_AVERAGE_EXCHANGE, "", event, message -> {
             message.getMessageProperties().setHeaders(Map.of(
-                    "x-jwt-token", jwtUtils.getToken(),
-                    "x-tenant-id", jwtUtils.getId()
+                    "x-jwt-token", jwtUtils.getToken()
             ));
             return message;
         });
@@ -47,8 +46,7 @@ public class WeightedAverageEventPublisher implements IWeightedAverageEventPort 
 
         rabbitTemplate.convertAndSend(RabbitWeightedAverageConfig.WEIGHTED_AVERAGE_EXCHANGE, "", event, message -> {
             message.getMessageProperties().setHeaders(Map.of(
-                    "x-jwt-token", jwtUtils.getToken(),
-                    "x-tenant-id", jwtUtils.getId()
+                    "x-jwt-token", jwtUtils.getToken()
             ));
             return message;
         });
@@ -61,8 +59,7 @@ public class WeightedAverageEventPublisher implements IWeightedAverageEventPort 
 
         rabbitTemplate.convertAndSend(RabbitWeightedAverageConfig.WEIGHTED_AVERAGE_EXCHANGE, "", event, message -> {
             message.getMessageProperties().setHeaders(Map.of(
-                    "x-jwt-token", jwtUtils.getToken(),
-                    "x-tenant-id", jwtUtils.getId()
+                    "x-jwt-token", jwtUtils.getToken()
             ));
             return message;
         });
@@ -75,8 +72,7 @@ public class WeightedAverageEventPublisher implements IWeightedAverageEventPort 
 
         rabbitTemplate.convertAndSend(RabbitWeightedAverageConfig.WEIGHTED_AVERAGE_EXCHANGE, "", event, message -> {
             message.getMessageProperties().setHeaders(Map.of(
-                    "x-jwt-token", jwtUtils.getToken(),
-                    "x-tenant-id", jwtUtils.getId()
+                    "x-jwt-token", jwtUtils.getToken()
             ));
             return message;
         });
