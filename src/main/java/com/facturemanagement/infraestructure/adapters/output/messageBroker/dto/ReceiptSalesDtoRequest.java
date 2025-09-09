@@ -20,4 +20,5 @@ public class ReceiptSalesDtoRequest {
     private Long pendingValue;
     private LocalDate expirationDate;
     private boolean active;
+    private Long accountingAccount;
 }

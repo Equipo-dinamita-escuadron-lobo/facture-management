@@ -26,6 +26,10 @@ public class SkeletonController {
     @PostMapping("/skeleton/sale")
     public void createSaleSkeleton(@RequestBody Facture2 facture) {
         skeletonService.skeletonSaleKardex(facture);
+    }
+
+    @PostMapping("/skeleton/sale-for-receipt")
+    public void createSaleForReceiptSkeleton(@RequestBody Facture2 facture) {
         skeletonService.skeletonSaleReceipt(facture);
     }
 

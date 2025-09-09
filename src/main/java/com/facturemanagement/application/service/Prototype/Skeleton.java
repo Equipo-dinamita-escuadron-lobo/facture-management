@@ -90,7 +90,8 @@ public class Skeleton implements ISkeleton {
         receiptSalesDtoRequest.setPendingValue(Long.valueOf(facture.getPendingValue()));
         receiptSalesDtoRequest.setExpirationDate(facture.getExpirationDate());
         receiptSalesDtoRequest.setActive(true);
-        
+        receiptSalesDtoRequest.setAccountingAccount(facture.getAccountingAccount());
+
         weightedAverageEventPort.publishSaleReceiptEvent(receiptSalesDtoRequest);
     }
 

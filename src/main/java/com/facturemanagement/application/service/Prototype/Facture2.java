@@ -31,5 +31,6 @@ public class Facture2 {
     private String totalPay;
     private String pendingValue;
     private LocalDate expirationDate;
+    private Long accountingAccount;
 
 }
