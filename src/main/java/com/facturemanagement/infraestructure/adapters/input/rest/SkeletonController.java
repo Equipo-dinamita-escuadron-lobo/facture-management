@@ -11,10 +11,12 @@ import com.facturemanagement.application.service.Prototype.ISkeleton;
 import com.facturemanagement.application.service.Prototype.Product2;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/api/factures/")
 @RequiredArgsConstructor
+@Slf4j
 public class SkeletonController {
     private final ISkeleton skeletonService;
 
@@ -23,14 +25,29 @@ public class SkeletonController {
         skeletonService.skeletonPurchaseKardex(facture);
     }
 
-    @PostMapping("/skeleton/sale")
-    public void createSaleSkeleton(@RequestBody Facture2 facture) {
-        skeletonService.skeletonSaleKardex(facture);
-    }
-
     @PostMapping("/skeleton/sale-for-receipt")
     public void createSaleForReceiptSkeleton(@RequestBody Facture2 facture) {
-        skeletonService.skeletonSaleReceipt(facture);
+        boolean receiptSuccess = false;
+        boolean kardexSuccess = false;
+        
+        try {
+            skeletonService.skeletonSaleReceipt(facture);
+            receiptSuccess = true;
+        } catch (Exception e) {
+            log.error("Error en skeletonSaleReceipt: {}", e.getMessage());
+        }
+        
+        try {
+            skeletonService.skeletonSaleKardex(facture);
+            kardexSuccess = true;
+        } catch (Exception e) {
+            log.error("Error en skeletonSaleKardex: {}", e.getMessage());
+        }
+        
+        // Si ninguno de los dos servicios funcionó, lanzar excepción
+        if (!receiptSuccess && !kardexSuccess) {
+            throw new RuntimeException("Ambos servicios fallaron: skeletonSaleReceipt y skeletonSaleKardex");
+        }
     }
 
     @PostMapping("/skeleton/return-on-sale/{factCode}")
