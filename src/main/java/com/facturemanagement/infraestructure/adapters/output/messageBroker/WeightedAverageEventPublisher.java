@@ -6,8 +6,8 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
 import com.facturemanagement.application.ports.input.IWeightedAverageEventPort;
-import com.facturemanagement.infraestructure.adapters.config.RabbitReceiptConfig;
-import com.facturemanagement.infraestructure.adapters.config.RabbitWeightedAverageConfig;
+import com.facturemanagement.infraestructure.adapters.config.rabbitConfig.RabbitReceiptConfig;
+import com.facturemanagement.infraestructure.adapters.config.rabbitConfig.RabbitWeightedAverageConfig;
 import com.facturemanagement.infraestructure.adapters.output.messageBroker.dto.EventDto;
 import com.facturemanagement.infraestructure.adapters.output.messageBroker.dto.KardexPurchaseDtoRequest;
 import com.facturemanagement.infraestructure.adapters.output.messageBroker.dto.KardexSalesDtoRequest;
