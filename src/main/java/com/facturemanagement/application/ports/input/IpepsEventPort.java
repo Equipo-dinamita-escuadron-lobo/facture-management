@@ -8,4 +8,7 @@ public interface IpepsEventPort {
     void publishSalePEPSEvent(KardexSalesDtoRequest kardexDtoRequest);
     void publishReturnOnSalePEPSEvent(KardexSalesDtoRequest kardexDtoRequest);
     void publishReturnOnPurchasePEPSEvent(KardexSalesDtoRequest kardexDtoRequest);
+    void publishNonCommercialExitPEPSEvent(KardexSalesDtoRequest kardexDtoRequest);
+    void publishNonCommercialEntryPEPSEvent(KardexPurchaseDtoRequest kardexDtoRequest);
+
 }

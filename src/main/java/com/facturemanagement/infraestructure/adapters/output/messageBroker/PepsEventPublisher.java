@@ -74,5 +74,30 @@ public class PepsEventPublisher implements IpepsEventPort {
             return message;
         });
     }
+
+    @Override
+    public void publishNonCommercialExitPEPSEvent(KardexSalesDtoRequest kardexDtoRequest) {
+        EventDto<KardexSalesDtoRequest, EventFactureType> event = new EventDto<>(EventFactureType.NONCOMMERCIALEXIT, kardexDtoRequest);
+        log.info("Publishing peps event: {}", kardexDtoRequest.getFactCode());
+        rabbitTemplate.convertAndSend(RabbitPEPSConfig.PEPS_EXCHANGE, "", event, message -> {
+            message.getMessageProperties().setHeaders(Map.of(
+                    "x-jwt-token", jwtUtils.getToken()
+            ));
+            return message;
+        });
+    }
+
+    @Override
+    public void publishNonCommercialEntryPEPSEvent(KardexPurchaseDtoRequest kardexDtoRequest) {
+         EventDto<KardexPurchaseDtoRequest, EventFactureType> event = new EventDto<>(EventFactureType.NONCOMMERCIALENTRY, kardexDtoRequest); 
+        log.info("Publishing peps event: {}", kardexDtoRequest.getFactCode());
+        
+        rabbitTemplate.convertAndSend(RabbitPEPSConfig.PEPS_EXCHANGE, "", event, message -> {
+            message.getMessageProperties().setHeaders(Map.of(
+                    "x-jwt-token", jwtUtils.getToken()
+            ));
+            return message;
+        });
+    }
     
 }

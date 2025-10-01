@@ -26,7 +26,7 @@ public class SkeletonController {
         boolean kardexSuccess = false;
         boolean pepsSuccess = false;
 
-    
+        
         try {
             skeletonService.skeletonPurchaseKardex(facture);
             kardexSuccess = true;
@@ -41,7 +41,8 @@ public class SkeletonController {
             log.error("Error en skeletonPurchaseWeigthAvarage: {}", e.getMessage());
         }
 
-         // Si ninguno de los dos servicios funcionó, lanzar excepción
+         
+        // Si ninguno de los dos servicios funcionó, lanzar excepción
         if (!kardexSuccess  && !pepsSuccess) {
             throw new RuntimeException("Ambos servicios fallaron: skeletonPurchaseWeigthAverage y skeletonPurchasePeps");
         }
@@ -99,7 +100,7 @@ public class SkeletonController {
             kardexSuccess = true;
         } catch (Exception e) {
             log.error("Error en skeletonReturnOnSaleWeigthAvarage: {}", e.getMessage());
-        }
+        } 
 
         try{
             skeletonService.skeletonReturnOnSaleKardexPeps(factCode, product);
@@ -125,9 +126,6 @@ public class SkeletonController {
         boolean kardexSuccess = false;
         boolean pepsSuccess = false;
 
-
-
-
         try{
             skeletonService.skeletonReturnOnPurchaseKardex(factCode, product);
             kardexSuccess = true;
@@ -147,6 +145,37 @@ public class SkeletonController {
         }
 
     }
+
+    @PostMapping("/skeleton/non-commercial-entry")
+    public void createNonCommercialEntry(@RequestBody Facture2 facture) {
+        boolean nonCommercial = false;
+        try{
+            skeletonService.skeletonNonCommercialEntrytKardexPeps(facture);
+            nonCommercial=true;
+        }catch(Exception e){
+            log.error("Error en skeletonNonCommercialEntry: {}", e.getMessage());
+        }
+        if(!nonCommercial){
+            throw new RuntimeException("Fallo el servicio: skeletonNonCommercialEntry");
+        }
+    }
+    @PostMapping("/skeleton/non-commercial-exit")
+    public void createNonCommercialExit(@RequestBody Facture2 facture) {
+        boolean nonCommercial = false;
+        try {
+            skeletonService.skeletonNonCommercialExitKardexPeps(facture);
+            nonCommercial=true;
+        } catch (Exception e) {
+          log.error("Error en skeletonNonCommercialExit: {}", e.getMessage());
+        }
+        if(!nonCommercial){
+            throw new RuntimeException("Fallo el servicio: skeletonNonCommercialExit");
+        }
+    }
+    
+
+
+    
 
 
 
