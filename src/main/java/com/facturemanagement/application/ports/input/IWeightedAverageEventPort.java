@@ -10,4 +10,7 @@ public interface IWeightedAverageEventPort {
     void publishReturnOnSaleWeightedAverageEvent(KardexSalesDtoRequest kardexDtoRequest);
     void publishReturnOnPurchaseWeightedAverageEvent(KardexSalesDtoRequest kardexDtoRequest);
     void publishSaleReceiptEvent(ReceiptSalesDtoRequest receiptSalesDtoRequest);
+    
+    void publishNonCommercialExitWeightedAverageEvent(KardexSalesDtoRequest kardexDtoRequest);
+    void publishNonCommercialEntryWeightedAverageEvent(KardexPurchaseDtoRequest kardexDtoRequest);
 }

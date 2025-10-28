@@ -92,4 +92,33 @@ public class WeightedAverageEventPublisher implements IWeightedAverageEventPort 
         });
     }
 
+    @Override
+    public void publishNonCommercialExitWeightedAverageEvent(KardexSalesDtoRequest kardexDtoRequest) {
+        EventDto<KardexSalesDtoRequest, EventFactureType> event = new EventDto<>(EventFactureType.NONCOMMERCIALEXIT, kardexDtoRequest);
+        log.info("Publishing weighted average event non commercial exit: {}", kardexDtoRequest.getFactCode());
+
+        rabbitTemplate.convertAndSend(RabbitWeightedAverageConfig.WEIGHTED_AVERAGE_EXCHANGE, "", event, message -> {
+            message.getMessageProperties().setHeaders(Map.of(
+                    "x-jwt-token", jwtUtils.getToken()
+            ));
+            return message;
+        });
+    }
+
+    @Override
+    public void publishNonCommercialEntryWeightedAverageEvent(KardexPurchaseDtoRequest kardexDtoRequest) {
+        EventDto<KardexPurchaseDtoRequest, EventFactureType> event = new EventDto<>(EventFactureType.NONCOMMERCIALENTRY, kardexDtoRequest);
+        log.info("Publishing weighted average event non commercial entry: {}", kardexDtoRequest.getFactCode());
+
+        rabbitTemplate.convertAndSend(RabbitWeightedAverageConfig.WEIGHTED_AVERAGE_EXCHANGE, "", event, message -> {
+            message.getMessageProperties().setHeaders(Map.of(
+                    "x-jwt-token", jwtUtils.getToken()
+            ));
+            return message;
+        });
+    }
+
+
+    
+
 }

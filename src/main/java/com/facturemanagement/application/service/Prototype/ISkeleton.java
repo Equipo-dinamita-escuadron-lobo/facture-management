@@ -7,6 +7,9 @@ public interface ISkeleton {
     void skeletonReturnOnPurchaseKardex(Long factCode, Product2 product);
     void skeletonSaleReceipt(Facture2 facture);
 
+    void skeletonNonCommercialExitKardex(Facture2 facture);
+    void skeletonNonCommercialEntrytKardex(Facture2 facture);
+
     //methods for inventory PEPS
     void skeletonPurchaseKardexPeps(Facture2 facture);
     void skeletonSaleKardexPeps(Facture2 facture);
@@ -14,6 +17,5 @@ public interface ISkeleton {
     void skeletonReturnOnPurchaseKardexPeps(Long factCode, Product2 product);
     void skeletonNonCommercialExitKardexPeps(Facture2 facture);
     void skeletonNonCommercialEntrytKardexPeps(Facture2 facture);
-
 
 }

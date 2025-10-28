@@ -149,26 +149,44 @@ public class SkeletonController {
     @PostMapping("/skeleton/non-commercial-entry")
     public void createNonCommercialEntry(@RequestBody Facture2 facture) {
         boolean nonCommercial = false;
+        boolean nonCommercialWeighted = false;
+
+        try {
+            skeletonService.skeletonNonCommercialEntrytKardex(facture);
+            nonCommercialWeighted=true;
+        } catch (Exception e) {
+            log.error("Error en skeletonNonCommercialEntryWeighted: {}", e.getMessage());
+        }
+
         try{
             skeletonService.skeletonNonCommercialEntrytKardexPeps(facture);
             nonCommercial=true;
         }catch(Exception e){
             log.error("Error en skeletonNonCommercialEntry: {}", e.getMessage());
         }
-        if(!nonCommercial){
+        if(!nonCommercial && !nonCommercialWeighted){
             throw new RuntimeException("Fallo el servicio: skeletonNonCommercialEntry");
         }
     }
     @PostMapping("/skeleton/non-commercial-exit")
     public void createNonCommercialExit(@RequestBody Facture2 facture) {
         boolean nonCommercial = false;
+        boolean nonCommercialWeighted = false;
+
+        try {
+            skeletonService.skeletonNonCommercialExitKardex(facture);
+            nonCommercialWeighted=true;
+        } catch (Exception e) {
+            log.error("Error en skeletonNonCommercialExitWeighted: {}", e.getMessage());
+        }
+
         try {
             skeletonService.skeletonNonCommercialExitKardexPeps(facture);
             nonCommercial=true;
         } catch (Exception e) {
           log.error("Error en skeletonNonCommercialExit: {}", e.getMessage());
         }
-        if(!nonCommercial){
+        if(!nonCommercial && !nonCommercialWeighted){
             throw new RuntimeException("Fallo el servicio: skeletonNonCommercialExit");
         }
     }

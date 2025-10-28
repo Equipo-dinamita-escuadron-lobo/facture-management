@@ -196,5 +196,40 @@ public class Skeleton implements ISkeleton {
         }
     }
 
+    @Override
+    public void skeletonNonCommercialExitKardex(Facture2 facture) {
+        Long factCode = facture.getFactCode();
+        Set<Product2> products = facture.getFactProducts();
+
+        for (Product2 product : products) {
+            KardexSalesDtoRequest kardexDtoRequest = new KardexSalesDtoRequest();
+            kardexDtoRequest.setQuantity(product.getAmount());
+            kardexDtoRequest.setFactCode(factCode);
+            kardexDtoRequest.setProductId(product.getProductId());
+            //kardexDtoRequest.setDetails("Salida no comercial-Factura:" + factCode); // No es obligatorio
+           
+            weightedAverageEventPort.publishNonCommercialExitWeightedAverageEvent(kardexDtoRequest);
+        }
+    }
+
+    @Override
+    public void skeletonNonCommercialEntrytKardex(Facture2 facture) {
+        Long factCode = facture.getFactCode();
+        Set<Product2> products = facture.getFactProducts();
+
+        for (Product2 product : products) {
+            KardexPurchaseDtoRequest kardexDtoRequest = new KardexPurchaseDtoRequest();
+            kardexDtoRequest.setQuantity(product.getAmount());
+            kardexDtoRequest.setFactCode(factCode);
+
+            double basePrice = product.getBasePrice();
+
+            kardexDtoRequest.setUnitPrice(BigDecimal.valueOf(basePrice));
+            kardexDtoRequest.setProductId(product.getProductId());
+            //kardexDtoRequest.setDetails("Entrada no comercial-Factura:" + factCode); // No es obligatorio
+
+            weightedAverageEventPort.publishNonCommercialEntryWeightedAverageEvent(kardexDtoRequest);
+        }
+    }
     
 }

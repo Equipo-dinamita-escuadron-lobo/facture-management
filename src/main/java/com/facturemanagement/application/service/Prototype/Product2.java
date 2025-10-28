@@ -16,8 +16,6 @@ public class Product2 {
     private int amount;
     private String description;
     private double descount;
-    //private String code;
-    //private double vat;
     private double unitPrice; 
     private double subtotal;
 
