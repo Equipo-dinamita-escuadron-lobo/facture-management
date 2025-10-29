@@ -18,6 +18,7 @@ public class ReceiptSalesDtoRequest {
     private Long totalPay;
     private Long totalValue;
     private Long pendingValue;
+    private LocalDate creationDate;
     private LocalDate expirationDate;
     private boolean active;
     private Long accountingAccount;
