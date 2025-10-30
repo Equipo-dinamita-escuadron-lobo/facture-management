@@ -22,13 +22,39 @@ public class SkeletonController {
 
     @PostMapping("/skeleton/purchase")
     public void createPurchaseSkeleton(@RequestBody Facture2 facture) {
-        skeletonService.skeletonPurchaseKardex(facture);
+
+        boolean kardexSuccess = false;
+        boolean pepsSuccess = false;
+
+        
+        try {
+            skeletonService.skeletonPurchaseKardex(facture);
+            kardexSuccess = true;
+        } catch (Exception e) {
+            log.error("Error en skeletonPurchaseWeigthAvarage: {}", e.getMessage());
+        }
+
+        try {
+            skeletonService.skeletonPurchaseKardexPeps(facture);
+            pepsSuccess = true;
+        } catch (Exception e) {
+            log.error("Error en skeletonPurchaseWeigthAvarage: {}", e.getMessage());
+        }
+
+         
+        // Si ninguno de los dos servicios funcionó, lanzar excepción
+        if (!kardexSuccess  && !pepsSuccess) {
+            throw new RuntimeException("Ambos servicios fallaron: skeletonPurchaseWeigthAverage y skeletonPurchasePeps");
+        }
+
+
     }
 
     @PostMapping("/skeleton/sale-for-receipt")
     public void createSaleForReceiptSkeleton(@RequestBody Facture2 facture) {
         boolean receiptSuccess = false;
         boolean kardexSuccess = false;
+        boolean pepsSuccess = false;
         
         try {
             skeletonService.skeletonSaleReceipt(facture);
@@ -43,25 +69,114 @@ public class SkeletonController {
         } catch (Exception e) {
             log.error("Error en skeletonSaleKardex: {}", e.getMessage());
         }
+
+        try {
+            skeletonService.skeletonSaleKardexPeps(facture);
+            pepsSuccess = true;
+        } catch (Exception e) {
+            log.error("Error en skeletonSaleKardexPeps: {}", e.getMessage());
+        }
+        
         
         // Si ninguno de los dos servicios funcionó, lanzar excepción
-        if (!receiptSuccess && !kardexSuccess) {
-            throw new RuntimeException("Ambos servicios fallaron: skeletonSaleReceipt y skeletonSaleKardex");
+        if (!receiptSuccess && !kardexSuccess && !pepsSuccess) {
+            throw new RuntimeException("Los tres servicios fallaron: skeletonSaleReceipt, skeletonSaleKardex, skeletonSaleKardexPeps ");
         }
+
     }
 
     @PostMapping("/skeleton/return-on-sale/{factCode}")
     public void createReturnOnSaleSkeleton(
         @PathVariable Long factCode,
         @RequestBody Product2 product) {
-        skeletonService.skeletonReturnOnSaleKardex(factCode, product);
+
+        boolean kardexSuccess = false;
+        boolean pepsSuccess = false;
+
+        
+
+        try{
+            skeletonService.skeletonReturnOnSaleKardex(factCode, product);
+            kardexSuccess = true;
+        } catch (Exception e) {
+            log.error("Error en skeletonReturnOnSaleWeigthAvarage: {}", e.getMessage());
+        } 
+
+        try{
+            skeletonService.skeletonReturnOnSaleKardexPeps(factCode, product);
+            pepsSuccess = true;
+        } catch (Exception e) {
+            log.error("Error en skeletonReturnOnSalePeps: {}", e.getMessage());
+        }
+
+
+     // Si ninguno de los dos servicios funcionó, lanzar excepción
+        if (!kardexSuccess  && !pepsSuccess) {
+            throw new RuntimeException("Ambos servicios fallaron: skeletonSaleWeigthAverage y skeletonSalePeps");
+        }
+
+
     }
 
     @PostMapping("/skeleton/return-on-purchase/{factCode}")
     public void createReturnOnPurchaseSkeleton(
         @PathVariable Long factCode,
         @RequestBody Product2 product) {
-        skeletonService.skeletonReturnOnPurchaseKardex(factCode, product);
+
+        boolean kardexSuccess = false;
+        boolean pepsSuccess = false;
+
+        try{
+            skeletonService.skeletonReturnOnPurchaseKardex(factCode, product);
+            kardexSuccess = true;
+        } catch (Exception e) {
+            log.error("Error en skeletonReturnOnPurchaseWeigthAvarage: {}", e.getMessage());
+        }
+
+        try{
+            skeletonService.skeletonReturnOnPurchaseKardexPeps(factCode, product);
+            kardexSuccess = true;
+        } catch (Exception e) {
+            log.error("Error en skeletonReturnOnPurchasePeps: {}", e.getMessage());
+        }
+        // Si ninguno de los dos servicios funcionó, lanzar excepción
+        if (!kardexSuccess  && !pepsSuccess) {
+            throw new RuntimeException("Ambos servicios fallaron: skeletonSaleWeigthAverage y skeletonSalePeps");
+        }
+
     }
+
+    @PostMapping("/skeleton/non-commercial-entry")
+    public void createNonCommercialEntry(@RequestBody Facture2 facture) {
+        boolean nonCommercial = false;
+        try{
+            skeletonService.skeletonNonCommercialEntrytKardexPeps(facture);
+            nonCommercial=true;
+        }catch(Exception e){
+            log.error("Error en skeletonNonCommercialEntry: {}", e.getMessage());
+        }
+        if(!nonCommercial){
+            throw new RuntimeException("Fallo el servicio: skeletonNonCommercialEntry");
+        }
+    }
+    @PostMapping("/skeleton/non-commercial-exit")
+    public void createNonCommercialExit(@RequestBody Facture2 facture) {
+        boolean nonCommercial = false;
+        try {
+            skeletonService.skeletonNonCommercialExitKardexPeps(facture);
+            nonCommercial=true;
+        } catch (Exception e) {
+          log.error("Error en skeletonNonCommercialExit: {}", e.getMessage());
+        }
+        if(!nonCommercial){
+            throw new RuntimeException("Fallo el servicio: skeletonNonCommercialExit");
+        }
+    }
+    
+
+
+    
+
+
 
 }
