@@ -1,6 +1,7 @@
 package com.facturemanagement.application.service.Prototype;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Set;
 
 import org.springframework.stereotype.Service;
@@ -93,6 +94,7 @@ public class Skeleton implements ISkeleton {
         receiptSalesDtoRequest.setTotalPay(Long.valueOf(facture.getTotalPay()));
         receiptSalesDtoRequest.setTotalValue(Long.valueOf(facture.getTotalValue()));
         receiptSalesDtoRequest.setPendingValue(Long.valueOf(facture.getPendingValue()));
+        receiptSalesDtoRequest.setCreationDate(LocalDate.now());
         receiptSalesDtoRequest.setExpirationDate(facture.getExpirationDate());
         receiptSalesDtoRequest.setActive(true);
         receiptSalesDtoRequest.setAccountingAccount(facture.getAccountingAccount());
