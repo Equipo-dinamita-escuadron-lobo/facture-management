@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.facturemanagement.application.service.Prototype.Facture2;
+import com.facturemanagement.application.service.Prototype.FactureNonCommercial;
 import com.facturemanagement.application.service.Prototype.ISkeleton;
 import com.facturemanagement.application.service.Prototype.Product2;
 
@@ -147,7 +148,7 @@ public class SkeletonController {
     }
 
     @PostMapping("/skeleton/non-commercial-entry")
-    public void createNonCommercialEntry(@RequestBody Facture2 facture) {
+    public void createNonCommercialEntry(@RequestBody FactureNonCommercial facture) {
         boolean nonCommercial = false;
         try{
             skeletonService.skeletonNonCommercialEntrytKardexPeps(facture);
@@ -160,7 +161,7 @@ public class SkeletonController {
         }
     }
     @PostMapping("/skeleton/non-commercial-exit")
-    public void createNonCommercialExit(@RequestBody Facture2 facture) {
+    public void createNonCommercialExit(@RequestBody FactureNonCommercial facture) {
         boolean nonCommercial = false;
         try {
             skeletonService.skeletonNonCommercialExitKardexPeps(facture);

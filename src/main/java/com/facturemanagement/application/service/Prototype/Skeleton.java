@@ -161,7 +161,7 @@ public class Skeleton implements ISkeleton {
     }
 
     @Override
-    public void skeletonNonCommercialExitKardexPeps(Facture2 facture) {
+    public void skeletonNonCommercialExitKardexPeps(FactureNonCommercial facture) {
           Long factCode = facture.getFactCode();
         Set<Product2> products = facture.getFactProducts();
 
@@ -170,14 +170,14 @@ public class Skeleton implements ISkeleton {
             kardexDtoRequest.setQuantity(product.getAmount());
             kardexDtoRequest.setFactCode(factCode);
             kardexDtoRequest.setProductId(product.getProductId());
-            kardexDtoRequest.setDetails("Salida no comercial-Factura:" + factCode); // No es obligatorio
+            kardexDtoRequest.setDetails("Salida no comercial-Codigo:" + factCode +" "+ facture.getTagTitle());
            
             pepsEventPort.publishNonCommercialExitPEPSEvent(kardexDtoRequest);
         }
     }
 
     @Override
-    public void skeletonNonCommercialEntrytKardexPeps(Facture2 facture) {
+    public void skeletonNonCommercialEntrytKardexPeps(FactureNonCommercial facture) {
         Long factCode = facture.getFactCode();
         Set<Product2> products = facture.getFactProducts();
 
@@ -190,7 +190,7 @@ public class Skeleton implements ISkeleton {
 
             kardexDtoRequest.setUnitPrice(BigDecimal.valueOf(basePrice));
             kardexDtoRequest.setProductId(product.getProductId());
-            kardexDtoRequest.setDetails("Entrada no comercial-Factura:" + factCode); // No es obligatorio
+            kardexDtoRequest.setDetails("Entrada no comercial-Codigo:" + factCode+" "+ facture.getTagTitle()); 
 
             pepsEventPort.publishNonCommercialEntryPEPSEvent(kardexDtoRequest);
         }

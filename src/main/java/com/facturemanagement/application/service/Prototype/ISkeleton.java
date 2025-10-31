@@ -12,8 +12,8 @@ public interface ISkeleton {
     void skeletonSaleKardexPeps(Facture2 facture);
     void skeletonReturnOnSaleKardexPeps(Long factCode, Product2 product);
     void skeletonReturnOnPurchaseKardexPeps(Long factCode, Product2 product);
-    void skeletonNonCommercialExitKardexPeps(Facture2 facture);
-    void skeletonNonCommercialEntrytKardexPeps(Facture2 facture);
+    void skeletonNonCommercialExitKardexPeps(FactureNonCommercial facture);
+    void skeletonNonCommercialEntrytKardexPeps(FactureNonCommercial facture);
 
 
 }
