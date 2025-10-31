@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Service
 @RequiredArgsConstructor
@@ -165,6 +166,7 @@ public class SkeletonEventService {
                     .totalPay(Long.valueOf(facture.getTotalPay()))
                     .totalValue(Long.valueOf(facture.getTotalValue()))
                     .pendingValue(Long.valueOf(facture.getPendingValue()))
+                    .creationDate(LocalDate.now())
                     .expirationDate(facture.getExpirationDate())
                     .active(true)
                     .accountingAccount(facture.getAccountingAccount())
