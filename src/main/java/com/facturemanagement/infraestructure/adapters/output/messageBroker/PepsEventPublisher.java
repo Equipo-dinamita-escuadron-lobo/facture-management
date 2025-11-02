@@ -6,7 +6,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
 import com.facturemanagement.application.ports.input.IpepsEventPort;
-import com.facturemanagement.infraestructure.adapters.config.RabbitPEPSConfig;
+import com.facturemanagement.infraestructure.adapters.config.rabbitConfig.RabbitPEPSConfig;
 import com.facturemanagement.infraestructure.adapters.output.messageBroker.dto.EventDto;
 import com.facturemanagement.infraestructure.adapters.output.messageBroker.dto.KardexPurchaseDtoRequest;
 import com.facturemanagement.infraestructure.adapters.output.messageBroker.dto.KardexSalesDtoRequest;
