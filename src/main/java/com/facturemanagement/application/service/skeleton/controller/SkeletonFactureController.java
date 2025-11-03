@@ -126,7 +126,7 @@ public class SkeletonFactureController {
         SkeletonFacture facture = factureRepository.findByIdWithProducts(savedFacture.getId())
                 .orElseThrow();
         
-        eventService.publishNonCommercialEntryEvents(facture, request.getInventoryConfigType());
+        eventService.publishNonCommercialEntryEvents(facture, request.getInventoryConfigType(),request.getTagTitle());
         
         return ResponseEntity.status(HttpStatus.CREATED).body(savedFacture);
     }
@@ -144,7 +144,7 @@ public class SkeletonFactureController {
         SkeletonFacture facture = factureRepository.findByIdWithProducts(savedFacture.getId())
                 .orElseThrow();
         
-        eventService.publishNonCommercialExitEvents(facture, request.getInventoryConfigType());
+        eventService.publishNonCommercialExitEvents(facture, request.getInventoryConfigType(),request.getTagTitle());
         
         return ResponseEntity.status(HttpStatus.CREATED).body(savedFacture);
     }

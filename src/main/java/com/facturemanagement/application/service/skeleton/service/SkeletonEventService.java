@@ -182,22 +182,22 @@ public class SkeletonEventService {
     /**
      * Publica eventos de entrada no comercial según la configuración
      */
-    public void publishNonCommercialEntryEvents(SkeletonFacture facture, InventoryConfigurationType configType) {
+    public void publishNonCommercialEntryEvents(SkeletonFacture facture, InventoryConfigurationType configType,String tagTitle) {
         log.info("Publicando eventos de entrada no comercial para factura: {} con configuración: {}", 
                 facture.getFactCode(), configType);
         
         for (SkeletonProduct product : facture.getProducts()) {
-            publishSingleNonCommercialEntryEvent(facture.getFactCode(), product, configType);
+            publishSingleNonCommercialEntryEvent(facture.getFactCode(), product, configType, tagTitle);
         }
     }
     
     private void publishSingleNonCommercialEntryEvent(Long factCode, SkeletonProduct product, 
-                                                      InventoryConfigurationType configType) {
+                                                      InventoryConfigurationType configType,String tagTitle) {
         KardexPurchaseDtoRequest kardexDto = buildPurchaseKardexDto(factCode, product);
         
         if (configType == InventoryConfigurationType.PEPS) {
             try {
-                kardexDto.setDetails("Entrada no comercial-Factura:" + factCode);
+                kardexDto.setDetails("Entrada no comercial-Factura:" + factCode+" "+tagTitle);
                 pepsEventPort.publishNonCommercialEntryPEPSEvent(kardexDto);
                 log.info("Evento PEPS de entrada no comercial publicado - Producto: {}", product.getProductId());
             } catch (Exception e) {
@@ -216,22 +216,22 @@ public class SkeletonEventService {
     /**
      * Publica eventos de salida no comercial según la configuración
      */
-    public void publishNonCommercialExitEvents(SkeletonFacture facture, InventoryConfigurationType configType) {
+    public void publishNonCommercialExitEvents(SkeletonFacture facture, InventoryConfigurationType configType,String tagTitle) {
         log.info("Publicando eventos de salida no comercial para factura: {} con configuración: {}", 
                 facture.getFactCode(), configType);
         
         for (SkeletonProduct product : facture.getProducts()) {
-            publishSingleNonCommercialExitEvent(facture.getFactCode(), product, configType);
+            publishSingleNonCommercialExitEvent(facture.getFactCode(), product, configType,tagTitle);
         }
     }
     
     private void publishSingleNonCommercialExitEvent(Long factCode, SkeletonProduct product,
-                                                     InventoryConfigurationType configType) {
+                                                     InventoryConfigurationType configType,String tagTitle) {
         KardexSalesDtoRequest kardexDto = buildSalesKardexDto(factCode, product);
         
         if (configType == InventoryConfigurationType.PEPS) {
             try {
-                kardexDto.setDetails("Salida no comercial-Factura:" + factCode);
+                kardexDto.setDetails("Salida no comercial-Factura:" + factCode+" "+tagTitle);
                 pepsEventPort.publishNonCommercialExitPEPSEvent(kardexDto);
                 log.info("Evento PEPS de salida no comercial publicado - Producto: {}", product.getProductId());
             } catch (Exception e) {

@@ -52,4 +52,6 @@ public class SkeletonFactureRequestDto {
     
     @NotNull(message = "El tipo de configuración de inventario es obligatorio")
     private InventoryConfigurationType inventoryConfigType;
+
+    private String TagTitle;
 }
