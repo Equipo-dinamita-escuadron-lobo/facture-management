@@ -1,4 +1,4 @@
-package com.facturemanagement.infraestructure.adapters.config;
+package com.facturemanagement.infraestructure.adapters.config.rabbitConfig;
 
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;

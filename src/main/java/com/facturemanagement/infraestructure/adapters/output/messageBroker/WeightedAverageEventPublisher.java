@@ -6,12 +6,10 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
 import com.facturemanagement.application.ports.input.IWeightedAverageEventPort;
-import com.facturemanagement.infraestructure.adapters.config.rabbitConfig.RabbitReceiptConfig;
 import com.facturemanagement.infraestructure.adapters.config.rabbitConfig.RabbitWeightedAverageConfig;
 import com.facturemanagement.infraestructure.adapters.output.messageBroker.dto.EventDto;
 import com.facturemanagement.infraestructure.adapters.output.messageBroker.dto.KardexPurchaseDtoRequest;
 import com.facturemanagement.infraestructure.adapters.output.messageBroker.dto.KardexSalesDtoRequest;
-import com.facturemanagement.infraestructure.adapters.output.messageBroker.dto.ReceiptSalesDtoRequest;
 import com.facturemanagement.infraestructure.adapters.output.messageBroker.enums.EventFactureType;
 import com.facturemanagement.infraestructure.adapters.security.IJwtUtils;
 
@@ -79,17 +77,32 @@ public class WeightedAverageEventPublisher implements IWeightedAverageEventPort 
     }
 
     @Override
-    public void publishSaleReceiptEvent(ReceiptSalesDtoRequest receiptSalesDtoRequest) {
-        EventDto<ReceiptSalesDtoRequest, EventFactureType> event = new EventDto<>(EventFactureType.SALE, receiptSalesDtoRequest);
-        log.info("Publishing RECEIPT event: {}", receiptSalesDtoRequest.getFactCode());
+    public void publishNonCommercialExitWeightedAverageEvent(KardexSalesDtoRequest kardexDtoRequest) {
+        EventDto<KardexSalesDtoRequest, EventFactureType> event = new EventDto<>(EventFactureType.NONCOMMERCIALEXIT, kardexDtoRequest);
+        log.info("Publishing weighted average event non commercial exit: {}", kardexDtoRequest.getFactCode());
 
-        rabbitTemplate.convertAndSend(RabbitReceiptConfig.INVOICE_EXCHANGE, "", event, message -> {
+        rabbitTemplate.convertAndSend(RabbitWeightedAverageConfig.WEIGHTED_AVERAGE_EXCHANGE, "", event, message -> {
             message.getMessageProperties().setHeaders(Map.of(
-                    "x-jwt-token", jwtUtils.getToken(),
-                    "x-tenant-id", jwtUtils.getId()
+                    "x-jwt-token", jwtUtils.getToken()
             ));
             return message;
         });
     }
+
+    @Override
+    public void publishNonCommercialEntryWeightedAverageEvent(KardexPurchaseDtoRequest kardexDtoRequest) {
+        EventDto<KardexPurchaseDtoRequest, EventFactureType> event = new EventDto<>(EventFactureType.NONCOMMERCIALENTRY, kardexDtoRequest);
+        log.info("Publishing weighted average event non commercial entry: {}", kardexDtoRequest.getFactCode());
+
+        rabbitTemplate.convertAndSend(RabbitWeightedAverageConfig.WEIGHTED_AVERAGE_EXCHANGE, "", event, message -> {
+            message.getMessageProperties().setHeaders(Map.of(
+                    "x-jwt-token", jwtUtils.getToken()
+            ));
+            return message;
+        });
+    }
+
+
+    
 
 }

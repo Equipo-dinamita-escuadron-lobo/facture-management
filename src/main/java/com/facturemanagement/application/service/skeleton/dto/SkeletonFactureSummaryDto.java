@@ -1,0 +1,24 @@
+package com.facturemanagement.application.service.skeleton.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+
+import com.facturemanagement.application.service.skeleton.model.SkeletonFactureType;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class SkeletonFactureSummaryDto {
+    private Long id;
+    private Long factCode;
+    private String entId;
+    private Long thId;
+    private String totalValue;
+    private SkeletonFactureType factureType;
+    private LocalDateTime createdAt;
+}
