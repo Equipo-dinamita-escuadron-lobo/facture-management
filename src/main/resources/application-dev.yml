@@ -13,6 +13,10 @@ spring:
     console:
       enabled: false
 
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
     port: ${RABBITMQ_PORT:5672}
@@ -42,7 +46,7 @@ spring:
         jwt:
           issuer-uri: ${JWT_ISSUER_URI:http://localhost:8090/auth/realms/oauth2-realm}
           jwk-set-uri: ${JWT_JWK_SET_URI:http://localhost:8090/auth/realms/oauth2-realm/protocol/openid-connect/certs}
-          
+
 server:
   port: ${PORT:0}
 
