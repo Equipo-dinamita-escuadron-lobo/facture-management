@@ -22,4 +22,11 @@ public class CopyPhaseResponseDto {
     private List<CopyEquivalenciaDto> equivalenciasGeneradas;
     private String mensaje;
     private List<String> advertencias;
+
+    /**
+     * Datos serializados de las facturas para la fase RESTORE.
+     * Solo presente en modo BACKUP.
+     */
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+    private Object datosExportados;
 }

@@ -4,7 +4,6 @@ import com.facturemanagement.copy.application.output.IFactureSourceRepositoryPor
 import com.facturemanagement.infraestructure.adapters.output.persistence.entity.FactureEntity;
 import com.facturemanagement.infraestructure.adapters.output.persistence.repository.FactureRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -28,10 +27,8 @@ public class FactureSourceRepositoryAdapter implements IFactureSourceRepositoryP
 
     @Override
     public List<FactureEntity> findByEntOrigenBeforeSnapshot(String entOrigen, Instant snapshotCorte) {
-        // Traer todas las facturas del tenant origen (paginación generosa para la copia)
         return factureRepository
-                .findAllByEnterpriseId(entOrigen, PageRequest.of(0, Integer.MAX_VALUE))
-                .getContent()
+                .findAllByEntIdForBackup(entOrigen)
                 .stream()
                 .filter(f -> f.getCreationDate() == null
                         || !f.getCreationDate().toInstant(java.time.ZoneOffset.UTC).isAfter(snapshotCorte))

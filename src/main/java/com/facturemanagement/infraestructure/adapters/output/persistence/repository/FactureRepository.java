@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 import com.facturemanagement.infraestructure.adapters.output.persistence.entity.FactureEntity;
 
 @Repository
@@ -62,4 +64,12 @@ public interface FactureRepository extends JpaRepository<FactureEntity, Long> {
     @EntityGraph(attributePaths = "factProducts")
     @Query("SELECT f FROM FactureEntity f WHERE f.entId LIKE :entId AND f.factureType LIKE 'Compra'")
     Page<FactureEntity> findAllShoppingFacturesByEnterpriseId(String entId, Pageable pageable);
+
+    /**
+     * Recupera todas las facturas de un tenant para operaciones de copia/backup.
+     * No usa EntityGraph ni paginación para evitar el bug de Hibernate 6 con JOIN FETCH + LIMIT.
+     * factProducts se carga por FetchType.EAGER definido en la entidad.
+     */
+    @Query("SELECT DISTINCT f FROM FactureEntity f WHERE f.entId = :entId")
+    List<FactureEntity> findAllByEntIdForBackup(String entId);
 }

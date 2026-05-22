@@ -51,7 +51,7 @@ class FactureCopyServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new CopyFactureService(logRepo, sourceRepo, targetRepo);
+        service = new CopyFactureService(logRepo, sourceRepo, targetRepo, new com.fasterxml.jackson.databind.ObjectMapper());
     }
 
     // ----------------------------------------------------------------
