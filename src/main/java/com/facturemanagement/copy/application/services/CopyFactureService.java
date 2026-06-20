@@ -88,8 +88,10 @@ public class CopyFactureService implements IExecuteFactureCopyPhasePort {
                 .equivalenciasGeneradas(0)
                 .build();
 
-        // Construir índice productId para remap M:M
-        Map<Long, Long> productIndex = construirIndiceProducto(request.getEquivalenciasPrev());
+        // Construir índices para remap de FKs cross-service
+        List<CopyEquivalenciaDto> equivPrev = request.getEquivalenciasPrev() != null
+                ? request.getEquivalenciasPrev() : List.of();
+        Map<Long, Long> productIndex = construirIndiceProducto(equivPrev);
 
         List<String> advertencias = new ArrayList<>();
         List<CopyEquivalenciaDto> equivalencias = new ArrayList<>();
@@ -108,7 +110,8 @@ public class CopyFactureService implements IExecuteFactureCopyPhasePort {
                 FactureEntity nueva = new FactureEntity();
                 nueva.setFactId(null);
                 nueva.setEntId(request.getEntDestino());
-                nueva.setThId(original.getThId());
+                // Remap FK cross-service a thirds (fase EXTERNAS)
+                nueva.setThId(remapearFkPrev(original.getThId(), "third", equivPrev, advertencias, original.getFactId()));
                 nueva.setFactCode(null); // factCode es UNIQUE — se asigna null para auto-generación
                 nueva.setFactObservations(original.getFactObservations());
                 nueva.setFactureType(original.getFactureType());
