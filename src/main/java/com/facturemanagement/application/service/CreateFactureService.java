@@ -5,6 +5,7 @@ import com.facturemanagement.application.ports.output.FactureCreatedOutputPort;
 import com.facturemanagement.domain.event.FactureCreatedEvent;
 import com.facturemanagement.domain.model.Facture;
 import com.facturemanagement.infraestructure.adapters.output.eventpublisher.FactureEventPublisherAdapter;
+
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
@@ -33,6 +34,7 @@ public class CreateFactureService implements CreateFactureUseCase {
 
         // Publicar el evento de creación de factura
         factureEventPublisher.publishFactureCreatedEvent(new FactureCreatedEvent(facture.getFactId()));
+        
         return facture;
     }
 
@@ -47,4 +49,9 @@ public class CreateFactureService implements CreateFactureUseCase {
         Long lastFactCode = factureCreatedOutputPort.findMaxFactCode();
         return (lastFactCode == null) ? 1L : lastFactCode + 1; // Comienza en 1 si no hay factCode
     }
+
 }
+
+
+
+

@@ -1,6 +1,5 @@
 package com.facturemanagement.infraestructure.adapters.input.rest;
 
-import java.awt.List;
 import java.io.ByteArrayInputStream;
 
 import org.springframework.core.io.InputStreamResource;
@@ -11,7 +10,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.facturemanagement.application.ports.input.CreateFactureUseCase;
@@ -24,8 +22,6 @@ import com.facturemanagement.infraestructure.adapters.input.rest.data.request.Fa
 import com.facturemanagement.infraestructure.adapters.input.rest.data.response.FactureGetResponse;
 import com.facturemanagement.infraestructure.adapters.input.rest.data.response.FactureListResponse;
 import com.facturemanagement.infraestructure.adapters.input.rest.mapper.FactureRestMapper;
-import com.itextpdf.kernel.pdf.PdfWriter;
-import com.itextpdf.layout.element.Image;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.swagger.v3.oas.annotations.Operation;
@@ -42,7 +38,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@CrossOrigin("*")
 @RestController
 @RequestMapping("/api/factures/")
 @RequiredArgsConstructor

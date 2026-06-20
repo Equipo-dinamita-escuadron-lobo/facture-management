@@ -4,13 +4,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
-
 import com.facturemanagement.infraestructure.adapters.security.IJwtUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.itextpdf.io.IOException;
+
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.swagger.v3.oas.annotations.Operation;
@@ -21,6 +19,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import java.net.URI;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +31,9 @@ public class TestRestController {
 
     @Autowired
     private IJwtUtils jwtUtils;
+
+    @Value("${baseUrl}")
+    private String baseUrl;
 
     @GetMapping("/ping")
     @Operation(summary = "Ping", description = "Prueba básica accesible para cualquier usuario para verificar la disponibilidad del servidor.")
@@ -56,7 +58,7 @@ public class TestRestController {
         headers.add(HttpHeaders.AUTHORIZATION, "Bearer " + jwtUtils.getToken());
         HttpEntity<String> entity = new HttpEntity<>(headers);
         ResponseEntity<String> response = restTemplate.exchange(
-                URI.create("http://contables.unicauca.edu.co/api/thirds/third?thId=1"),
+                URI.create(baseUrl + "/thirds/third?thId=1"),
                 HttpMethod.GET,
                 entity,
                 String.class);

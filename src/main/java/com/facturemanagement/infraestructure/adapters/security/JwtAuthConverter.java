@@ -134,4 +134,28 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
     public String getToken() {
         return jwtToken.getTokenValue();
     }
+
+    @Override
+    public String getUsername() {
+        return (String) jwtToken.getClaims().get("preferred_username");
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public List<String> getRealmRoles() {
+        Map<String, Object> realmAccess = (Map<String, Object>) jwtToken.getClaims().get("realm_access");
+
+        if (realmAccess == null)
+            return List.of();
+
+        Object rolesObj = realmAccess.get("roles");
+
+        if (!(rolesObj instanceof List<?> rolesList))
+            return List.of();
+
+        return rolesList.stream()
+                .filter(String.class::isInstance)
+                .map(String.class::cast)
+                .toList();
+    }
 }

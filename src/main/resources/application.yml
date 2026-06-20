@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: factures
+
+  profiles:
+    active:
+    - ${PROFILE:dev}
+
+springdoc:
+  swagger-ui:
+    path: ${SWAGGER_PATH:/swagger-ui.html}
