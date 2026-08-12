@@ -5,6 +5,7 @@ import com.facturemanagement.application.service.skeleton.model.PurchaseInvoiceO
 import com.facturemanagement.application.service.skeleton.model.PurchaseInvoiceStatus;
 import com.facturemanagement.application.service.skeleton.model.SkeletonFacture;
 import com.facturemanagement.application.service.skeleton.repository.PurchaseInvoiceOutboxRepository;
+import com.facturemanagement.infraestructure.adapters.output.messageBroker.PurchaseInvoiceEventPublisher;
 import com.facturemanagement.infraestructure.adapters.output.messageBroker.dto.PurchaseInvoiceEventDto;
 import com.facturemanagement.infraestructure.adapters.output.persistence.multitenancy.util.TenantContext;
 import java.math.BigDecimal;
@@ -22,6 +23,7 @@ public class PurchaseInvoiceOutboxService {
     private final PurchaseInvoiceOutboxRepository repository;
     private final ObjectMapper mapper;
     private final PayableAccountCodeResolver payableAccountCodeResolver;
+    private final PurchaseInvoiceEventPublisher publisher;
 
     public void enqueue(SkeletonFacture facture, String eventType) {
         try {
@@ -60,8 +62,13 @@ public class PurchaseInvoiceOutboxService {
             event.setPayload(mapper.writeValueAsString(envelope));
             event.setTenantId(tenant);
             repository.save(event);
+            publisher.publish(event);
+            event.setStatus(PurchaseInvoiceOutboxEvent.Status.PUBLISHED);
+            event.setPublishedAt(Instant.now());
+            event.setLastError(null);
+            repository.save(event);
         } catch (Exception ex) {
-            throw new IllegalStateException("No fue posible crear el outbox de compra", ex);
+            throw new IllegalStateException("No fue posible publicar el evento de compra", ex);
         }
     }
 }

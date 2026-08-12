@@ -26,8 +26,3 @@ jwt:
       principle-attribute: preferred_username
       resource-id: microservices_client
 baseUrl: http://localhost
-facture:
-  security:
-    service-token:
-      uri: http://localhost/test/token
-      client-id: facture-service

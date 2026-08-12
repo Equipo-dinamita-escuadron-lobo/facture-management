@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.facturemanagement.infraestructure.adapters.security.FactureServiceTokenProvider;
+import com.facturemanagement.infraestructure.adapters.security.IJwtUtils;
 import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -24,12 +24,12 @@ class PayableAccountCodeResolverTest {
 
     private HttpServer server;
     private String baseUrl;
-    private FactureServiceTokenProvider tokens;
+    private IJwtUtils jwtUtils;
 
     @BeforeEach
     void setUp() throws IOException {
-        tokens = mock(FactureServiceTokenProvider.class);
-        when(tokens.bearerToken()).thenReturn("Bearer test-token");
+        jwtUtils = mock(IJwtUtils.class);
+        when(jwtUtils.getToken()).thenReturn("test-token");
         server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         server.setExecutor(Executors.newCachedThreadPool());
         server.start();
@@ -49,7 +49,7 @@ class PayableAccountCodeResolverTest {
                 "enterprise-local",
                 "[{\"id\":2205,\"code\":\"2205\"}]");
 
-        PayableAccountCodeResolver resolver = new PayableAccountCodeResolver(baseUrl, tokens);
+        PayableAccountCodeResolver resolver = new PayableAccountCodeResolver(baseUrl, jwtUtils);
 
         Optional<String> code = resolver.resolve(2205L, "enterprise-local");
 
@@ -62,7 +62,7 @@ class PayableAccountCodeResolverTest {
                 "enterprise-local",
                 "[{\"id\":99,\"code\":\"2205\"}]");
 
-        PayableAccountCodeResolver resolver = new PayableAccountCodeResolver(baseUrl, tokens);
+        PayableAccountCodeResolver resolver = new PayableAccountCodeResolver(baseUrl, jwtUtils);
 
         assertThat(resolver.resolve(99L, "enterprise-local")).contains("2205");
     }

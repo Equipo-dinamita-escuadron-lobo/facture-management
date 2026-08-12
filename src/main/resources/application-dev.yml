@@ -93,12 +93,3 @@ management:
         enabled: true
 
 baseUrl: ${BASE_URL:http://localhost:8080}
-
-facture:
-  security:
-    service-token:
-      uri: ${FACTURE_OAUTH_TOKEN_URI:${JWT_ISSUER_URI:http://localhost:8090/auth/realms/oauth2-realm}/protocol/openid-connect/token}
-      client-id: ${FACTURE_OAUTH_CLIENT_ID:facture-service}
-      client-secret: ${FACTURE_OAUTH_CLIENT_SECRET:}
-  outbox:
-    delay-ms: ${FACTURE_OUTBOX_DELAY_MS:5000}

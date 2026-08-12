@@ -1,13 +1,11 @@
 package com.facturemanagement.application.service.skeleton.service;
 
 import com.facturemanagement.infraestructure.adapters.output.persistence.multitenancy.util.TenantContext;
-import com.facturemanagement.infraestructure.adapters.security.FactureServiceTokenProvider;
+import com.facturemanagement.infraestructure.adapters.security.IJwtUtils;
 import java.util.Arrays;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
@@ -20,13 +18,13 @@ import org.springframework.web.client.RestClient;
 @Slf4j
 public class PayableAccountCodeResolver {
     private final RestClient client;
-    private final FactureServiceTokenProvider serviceTokens;
+    private final IJwtUtils jwtUtils;
 
     public PayableAccountCodeResolver(
             @Value("${baseUrl:http://localhost:8080}") String baseUrl,
-            FactureServiceTokenProvider serviceTokens) {
+            IJwtUtils jwtUtils) {
         this.client = RestClient.builder().baseUrl(baseUrl).build();
-        this.serviceTokens = serviceTokens;
+        this.jwtUtils = jwtUtils;
     }
 
     public String resolveOrFail(Long accountId, String enterpriseId) {
@@ -43,7 +41,7 @@ public class PayableAccountCodeResolver {
         try {
             AccountItem[] items = client.get()
                     .uri("/api/accountCatalogue/search/{enterpriseId}", enterpriseId)
-                    .header("Authorization", bearer())
+                    .header("Authorization", "Bearer " + jwtUtils.getToken())
                     .header("X-Tenant-ID", Optional.ofNullable(TenantContext.getTenantId()).orElse(""))
                     .retrieve()
                     .body(AccountItem[].class);
@@ -59,14 +57,6 @@ public class PayableAccountCodeResolver {
             log.warn("Lookup de cuenta {} en catálogo falló: {}", accountId, ex.getMessage());
             return Optional.empty();
         }
-    }
-
-    private String bearer() {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication instanceof JwtAuthenticationToken jwt) {
-            return "Bearer " + jwt.getToken().getTokenValue();
-        }
-        return serviceTokens.bearerToken();
     }
 
     private record AccountItem(Long id, String code) {}
