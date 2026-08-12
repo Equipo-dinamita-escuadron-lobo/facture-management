@@ -12,8 +12,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 /**
- * Resuelve el código PUC auxiliar a partir del id de cuenta contable.
- * Evita publicar {@code String.valueOf(accountId)} como payableAccountCode.
+ * Resuelve el código PUC auxiliar a partir del id de cuenta contable
+ * consultando el catálogo. Confía en el {@code code} del catálogo aunque
+ * coincida numéricamente con el id (códigos PUC enteramente numéricos).
  */
 @Component
 @Slf4j
@@ -52,7 +53,7 @@ public class PayableAccountCodeResolver {
             return Arrays.stream(items)
                     .filter(a -> accountId.equals(a.id()))
                     .map(AccountItem::code)
-                    .filter(code -> code != null && !code.isBlank() && !code.equals(String.valueOf(accountId)))
+                    .filter(code -> code != null && !code.isBlank())
                     .findFirst();
         } catch (Exception ex) {
             log.warn("Lookup de cuenta {} en catálogo falló: {}", accountId, ex.getMessage());
