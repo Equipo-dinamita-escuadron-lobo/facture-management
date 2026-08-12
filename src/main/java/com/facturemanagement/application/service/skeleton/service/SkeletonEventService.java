@@ -29,6 +29,7 @@ public class SkeletonEventService {
     private final IReceiptEventPort receiptEventPort;
     private final IpepsEventPort pepsEventPort;
     private final IJwtUtils jwtUtils;
+    private final PayableAccountCodeResolver payableAccountCodeResolver;
     
     /**
      * Publica eventos de compra uno por uno de forma asíncrona según la configuración
@@ -46,6 +47,8 @@ public class SkeletonEventService {
         BigDecimal original = new BigDecimal(facture.getTotalValue());
         BigDecimal paid = new BigDecimal(facture.getTotalPay());
         BigDecimal pending = new BigDecimal(facture.getPendingValue());
+        String payableCode = payableAccountCodeResolver.resolveOrFail(
+                facture.getAccountingAccount(), facture.getEntId());
         PurchaseInvoiceEventDto event = PurchaseInvoiceEventDto.builder()
                 .eventId(UUID.randomUUID().toString()).eventType("PURCHASE_INVOICE_CREATED")
                 .invoiceId(facture.getFactCode()).reference(String.valueOf(facture.getFactCode()))
@@ -53,7 +56,7 @@ public class SkeletonEventService {
                 .originalAmount(original).paidAmount(paid).pendingAmount(pending)
                 .issueDate(facture.getCreatedAt() == null ? LocalDate.now() : facture.getCreatedAt().toLocalDate())
                 .dueDate(facture.getExpirationDate()).payableAccountId(facture.getAccountingAccount())
-                .payableAccountCode(String.valueOf(facture.getAccountingAccount())).active(true)
+                .payableAccountCode(payableCode).active(true)
                 .tenantId(jwtUtils.getId()).build();
         receiptEventPort.publishPurchaseInvoiceEvent(event);
     }
