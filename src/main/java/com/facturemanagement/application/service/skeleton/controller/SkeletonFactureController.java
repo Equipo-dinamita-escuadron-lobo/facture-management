@@ -37,7 +37,7 @@ public class SkeletonFactureController {
                 request.getFactCode(), request.getInventoryConfigType());
         
         // Guardar factura
-        SkeletonFactureDetailDto savedFacture = factureService.createFacture(request);
+        SkeletonFactureDetailDto savedFacture = factureService.createPurchase(request);
         
         // Obtener entidad completa para publicar eventos
         SkeletonFacture facture = factureRepository.findByIdWithProducts(savedFacture.getId())
@@ -154,6 +154,25 @@ public class SkeletonFactureController {
     public ResponseEntity<List<SkeletonFactureSummaryDto>> getAllFactures() {
         List<SkeletonFactureSummaryDto> factures = factureService.getAllFactures();
         return ResponseEntity.ok(factures);
+    }
+
+    @PutMapping("/purchase/{id}")
+    @Operation(summary = "Actualizar factura de compra y sincronizar Tesoreria")
+    public ResponseEntity<SkeletonFactureDetailDto> updatePurchase(@PathVariable Long id,
+            @Valid @RequestBody SkeletonFactureRequestDto request) {
+        return ResponseEntity.ok(factureService.updatePurchase(id, request));
+    }
+
+    @PostMapping("/purchase/{id}/void")
+    @Operation(summary = "Anular factura de compra y sincronizar Tesoreria")
+    public ResponseEntity<SkeletonFactureDetailDto> voidPurchase(@PathVariable Long id) {
+        return ResponseEntity.ok(factureService.voidPurchase(id));
+    }
+
+    @PostMapping("/purchase/replay")
+    @Operation(summary = "Republicar facturas de compra para sincronización de Tesorería")
+    public ResponseEntity<Integer> replayPurchases(@RequestParam String enterpriseId) {
+        return ResponseEntity.ok(factureService.replayPurchases(enterpriseId));
     }
     
     @GetMapping("/{id}")

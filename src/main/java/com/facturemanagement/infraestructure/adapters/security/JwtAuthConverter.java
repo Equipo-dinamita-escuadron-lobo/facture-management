@@ -14,6 +14,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtClaimNames;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -25,8 +26,6 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
 
     @Value("${jwt.auth.converter.resource-id}")
     private String resourceId;
-
-    Jwt jwtToken;
 
     /**
      * Convierte un objeto Jwt en un AbstractAuthenticationToken.
@@ -43,8 +42,6 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
         Collection<GrantedAuthority> authorities = Stream
                 .concat(jwtGrantedAuthoritiesConverter.convert(jwt).stream(), extractResourceRoles(jwt).stream())
                 .toList();
-
-        this.jwtToken = jwt;
 
         return new JwtAuthenticationToken(jwt, authorities, getPrincipleName(jwt));
 
@@ -122,7 +119,7 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
      */
     @Override
     public String getId() {
-        return (String) jwtToken.getClaims().get("sub");
+        return currentJwt().getSubject();
     }
 
     /**
@@ -132,18 +129,18 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
      */
     @Override
     public String getToken() {
-        return jwtToken.getTokenValue();
+        return currentJwt().getTokenValue();
     }
 
     @Override
     public String getUsername() {
-        return (String) jwtToken.getClaims().get("preferred_username");
+        return currentJwt().getClaimAsString("preferred_username");
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public List<String> getRealmRoles() {
-        Map<String, Object> realmAccess = (Map<String, Object>) jwtToken.getClaims().get("realm_access");
+        Map<String, Object> realmAccess = (Map<String, Object>) currentJwt().getClaims().get("realm_access");
 
         if (realmAccess == null)
             return List.of();
@@ -156,6 +153,12 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
         return rolesList.stream()
                 .filter(String.class::isInstance)
                 .map(String.class::cast)
-                .toList();
+            .toList();
+    }
+
+    private Jwt currentJwt() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication instanceof JwtAuthenticationToken token) return token.getToken();
+        throw new IllegalStateException("No existe un JWT autenticado en el contexto actual");
     }
 }

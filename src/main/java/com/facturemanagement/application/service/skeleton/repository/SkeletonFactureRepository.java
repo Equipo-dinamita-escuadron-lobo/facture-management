@@ -6,11 +6,14 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.List;
+import com.facturemanagement.application.service.skeleton.model.SkeletonFactureType;
 
 @Repository
 public interface SkeletonFactureRepository extends JpaRepository<SkeletonFacture, Long> {
     
     Optional<SkeletonFacture> findByFactCode(Long factCode);
+    List<SkeletonFacture> findByEntIdAndFactureType(String entId, SkeletonFactureType factureType);
     
     boolean existsByFactCode(Long factCode);
     

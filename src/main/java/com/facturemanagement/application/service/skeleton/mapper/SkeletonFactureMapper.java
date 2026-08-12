@@ -55,6 +55,8 @@ public class SkeletonFactureMapper {
                 .totalValue(entity.getTotalValue())
                 .factureType(entity.getFactureType())
                 .createdAt(entity.getCreatedAt())
+                .purchaseStatus(entity.getPurchaseStatus())
+                .version(entity.getVersion())
                 .build();
     }
     
@@ -76,6 +78,8 @@ public class SkeletonFactureMapper {
                 .accountingAccount(entity.getAccountingAccount())
                 .factureType(entity.getFactureType())
                 .createdAt(entity.getCreatedAt())
+                .purchaseStatus(entity.getPurchaseStatus())
+                .version(entity.getVersion())
                 .build();
     }
     
