@@ -26,6 +26,7 @@ class SkeletonFactureServicePurchaseTest {
     private SkeletonFactureRepository factureRepository;
     private SkeletonFactureMapper mapper;
     private PurchaseInvoiceOutboxService outbox;
+    private PayableAccountDefaultResolver payableAccountDefaultResolver;
     private SkeletonFactureService service;
 
     @BeforeEach
@@ -33,11 +34,13 @@ class SkeletonFactureServicePurchaseTest {
         factureRepository = mock(SkeletonFactureRepository.class);
         mapper = mock(SkeletonFactureMapper.class);
         outbox = mock(PurchaseInvoiceOutboxService.class);
+        payableAccountDefaultResolver = mock(PayableAccountDefaultResolver.class);
         service = new SkeletonFactureService(
                 factureRepository,
                 mock(SkeletonReturnRepository.class),
                 mapper,
-                outbox);
+                outbox,
+                payableAccountDefaultResolver);
     }
 
     @Test
@@ -45,6 +48,7 @@ class SkeletonFactureServicePurchaseTest {
         SkeletonFactureRequestDto request = request(1001L);
         SkeletonFacture invoice = invoice(1L, PurchaseInvoiceStatus.ACTIVE);
         SkeletonFactureDetailDto response = SkeletonFactureDetailDto.builder().id(1L).build();
+        when(payableAccountDefaultResolver.resolveForPurchase(null, "enterprise-a")).thenReturn(2205L);
         when(mapper.toEntity(request)).thenReturn(invoice);
         when(factureRepository.save(invoice)).thenReturn(invoice);
         when(mapper.toDetailDto(invoice)).thenReturn(response);
@@ -60,6 +64,7 @@ class SkeletonFactureServicePurchaseTest {
         SkeletonFacture current = invoice(1L, PurchaseInvoiceStatus.ACTIVE);
         SkeletonFacture replacement = invoice(null, PurchaseInvoiceStatus.ACTIVE);
         SkeletonFactureRequestDto request = request(1002L);
+        when(payableAccountDefaultResolver.resolveForPurchase(null, "enterprise-a")).thenReturn(2205L);
         when(factureRepository.findByIdWithProducts(1L)).thenReturn(Optional.of(current));
         when(mapper.toEntity(request)).thenReturn(replacement);
         when(factureRepository.save(current)).thenReturn(current);
@@ -98,6 +103,7 @@ class SkeletonFactureServicePurchaseTest {
     void outboxFailureIsPropagatedSoTheTransactionCanRollBack() {
         SkeletonFactureRequestDto request = request(1003L);
         SkeletonFacture invoice = invoice(3L, PurchaseInvoiceStatus.ACTIVE);
+        when(payableAccountDefaultResolver.resolveForPurchase(null, "enterprise-a")).thenReturn(2205L);
         when(mapper.toEntity(request)).thenReturn(invoice);
         when(factureRepository.save(invoice)).thenReturn(invoice);
         doThrow(new IllegalStateException("outbox unavailable"))
@@ -113,6 +119,7 @@ class SkeletonFactureServicePurchaseTest {
     private SkeletonFactureRequestDto request(long code) {
         return SkeletonFactureRequestDto.builder()
                 .factCode(code)
+                .entId("enterprise-a")
                 .factureType(SkeletonFactureType.PURCHASE)
                 .products(Set.of())
                 .build();

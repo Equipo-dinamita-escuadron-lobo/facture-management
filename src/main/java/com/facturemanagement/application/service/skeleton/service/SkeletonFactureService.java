@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,15 +25,19 @@ import java.util.stream.Collectors;
 @Slf4j
 public class SkeletonFactureService {
 
+    private static final int DEFAULT_PAYMENT_TERM_DAYS = 30;
+
     private final SkeletonFactureRepository factureRepository;
     private final SkeletonReturnRepository returnRepository;
     private final SkeletonFactureMapper mapper;
     private final PurchaseInvoiceOutboxService purchaseOutbox;
+    private final PayableAccountDefaultResolver payableAccountDefaultResolver;
 
     @Transactional
     @DocumentAuditable(operationType = DocumentOperationType.CREATE, moduleName = "INVOICES")
     public SkeletonFactureDetailDto createPurchase(SkeletonFactureRequestDto request) {
         if (request.getFactureType() != SkeletonFactureType.PURCHASE) throw new IllegalArgumentException("El flujo purchase solo admite facturas PURCHASE");
+        preparePurchaseRequest(request);
         if (factureRepository.existsByFactCode(request.getFactCode())) throw new IllegalArgumentException("Ya existe una factura con el codigo: " + request.getFactCode());
         SkeletonFacture saved = factureRepository.save(mapper.toEntity(request));
         purchaseOutbox.enqueue(saved, "PURCHASE_INVOICE_CREATED");
@@ -43,6 +48,7 @@ public class SkeletonFactureService {
     public SkeletonFactureDetailDto updatePurchase(Long id, SkeletonFactureRequestDto request) {
         SkeletonFacture current = factureRepository.findByIdWithProducts(id).orElseThrow(() -> new IllegalArgumentException("Factura de compra no encontrada"));
         if (current.getFactureType() != SkeletonFactureType.PURCHASE || current.getPurchaseStatus() == PurchaseInvoiceStatus.VOIDED) throw new IllegalArgumentException("La factura de compra no se puede actualizar");
+        preparePurchaseRequest(request);
         SkeletonFacture replacement = mapper.toEntity(request);
         current.setFactCode(replacement.getFactCode());current.setEntId(replacement.getEntId());current.setThId(replacement.getThId());current.setTotalValue(replacement.getTotalValue());current.setTotalPay(replacement.getTotalPay());current.setPendingValue(replacement.getPendingValue());current.setExpirationDate(replacement.getExpirationDate());current.setAccountingAccount(replacement.getAccountingAccount());current.getProducts().clear();replacement.getProducts().forEach(current::addProduct);
         SkeletonFacture saved = factureRepository.save(current);
@@ -179,5 +185,16 @@ public class SkeletonFactureService {
     public Integer getTotalReturnedQuantity(Long factCode, Long productId) {
         Integer total = returnRepository.getTotalReturnedQuantity(factCode, productId);
         return total != null ? total : 0;
+    }
+
+    private void preparePurchaseRequest(SkeletonFactureRequestDto request) {
+        if (request.getFactCode() == null || request.getFactCode() <= 0) {
+            request.setFactCode(System.currentTimeMillis() % 1_000_000_000L);
+        }
+        if (request.getExpirationDate() == null) {
+            request.setExpirationDate(LocalDate.now().plusDays(DEFAULT_PAYMENT_TERM_DAYS));
+        }
+        request.setAccountingAccount(
+                payableAccountDefaultResolver.resolveForPurchase(request.getAccountingAccount(), request.getEntId()));
     }
 }
