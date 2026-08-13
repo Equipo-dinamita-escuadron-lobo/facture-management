@@ -21,7 +21,7 @@ import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class SkeletonFactureServicePurchaseTest {
+class SkeletonFactureServicePurchaseUnitTest {
 
     private SkeletonFactureRepository factureRepository;
     private SkeletonFactureMapper mapper;
