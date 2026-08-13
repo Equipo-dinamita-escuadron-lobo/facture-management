@@ -7,6 +7,8 @@ import com.facturemanagement.application.service.skeleton.mapper.SkeletonFacture
 import com.facturemanagement.application.service.skeleton.model.SkeletonFacture;
 import com.facturemanagement.application.service.skeleton.model.SkeletonProduct;
 import com.facturemanagement.application.service.skeleton.model.SkeletonReturn;
+import com.facturemanagement.application.service.skeleton.model.SkeletonFactureType;
+import com.facturemanagement.application.service.skeleton.model.PurchaseInvoiceStatus;
 import com.facturemanagement.application.service.skeleton.repository.SkeletonFactureRepository;
 import com.facturemanagement.application.service.skeleton.repository.SkeletonReturnRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,43 @@ public class SkeletonFactureService {
     private final SkeletonFactureRepository factureRepository;
     private final SkeletonReturnRepository returnRepository;
     private final SkeletonFactureMapper mapper;
+    private final PurchaseInvoiceOutboxService purchaseOutbox;
+
+    @Transactional
+    @DocumentAuditable(operationType = DocumentOperationType.CREATE, moduleName = "INVOICES")
+    public SkeletonFactureDetailDto createPurchase(SkeletonFactureRequestDto request) {
+        if (request.getFactureType() != SkeletonFactureType.PURCHASE) throw new IllegalArgumentException("El flujo purchase solo admite facturas PURCHASE");
+        if (factureRepository.existsByFactCode(request.getFactCode())) throw new IllegalArgumentException("Ya existe una factura con el codigo: " + request.getFactCode());
+        SkeletonFacture saved = factureRepository.save(mapper.toEntity(request));
+        purchaseOutbox.enqueue(saved, "PURCHASE_INVOICE_CREATED");
+        return mapper.toDetailDto(saved);
+    }
+
+    @Transactional
+    public SkeletonFactureDetailDto updatePurchase(Long id, SkeletonFactureRequestDto request) {
+        SkeletonFacture current = factureRepository.findByIdWithProducts(id).orElseThrow(() -> new IllegalArgumentException("Factura de compra no encontrada"));
+        if (current.getFactureType() != SkeletonFactureType.PURCHASE || current.getPurchaseStatus() == PurchaseInvoiceStatus.VOIDED) throw new IllegalArgumentException("La factura de compra no se puede actualizar");
+        SkeletonFacture replacement = mapper.toEntity(request);
+        current.setFactCode(replacement.getFactCode());current.setEntId(replacement.getEntId());current.setThId(replacement.getThId());current.setTotalValue(replacement.getTotalValue());current.setTotalPay(replacement.getTotalPay());current.setPendingValue(replacement.getPendingValue());current.setExpirationDate(replacement.getExpirationDate());current.setAccountingAccount(replacement.getAccountingAccount());current.getProducts().clear();replacement.getProducts().forEach(current::addProduct);
+        SkeletonFacture saved = factureRepository.save(current);
+        purchaseOutbox.enqueue(saved, "PURCHASE_INVOICE_UPDATED");
+        return mapper.toDetailDto(saved);
+    }
+
+    @Transactional
+    public SkeletonFactureDetailDto voidPurchase(Long id) {
+        SkeletonFacture current = factureRepository.findByIdWithProducts(id).orElseThrow(() -> new IllegalArgumentException("Factura de compra no encontrada"));
+        if (current.getFactureType() != SkeletonFactureType.PURCHASE) throw new IllegalArgumentException("El documento no es una compra");
+        if (current.getPurchaseStatus() != PurchaseInvoiceStatus.VOIDED) {current.setPurchaseStatus(PurchaseInvoiceStatus.VOIDED);current.setVoidedAt(java.time.LocalDateTime.now());factureRepository.save(current);purchaseOutbox.enqueue(current,"PURCHASE_INVOICE_VOIDED");}
+        return mapper.toDetailDto(current);
+    }
+
+    @Transactional
+    public int replayPurchases(String enterpriseId) {
+        List<SkeletonFacture> purchases=factureRepository.findByEntIdAndFactureType(enterpriseId,SkeletonFactureType.PURCHASE);
+        purchases.forEach(f->purchaseOutbox.enqueue(f,f.getPurchaseStatus()==PurchaseInvoiceStatus.VOIDED?"PURCHASE_INVOICE_VOIDED":"PURCHASE_INVOICE_CREATED"));
+        return purchases.size();
+    }
 
     @Transactional
     @DocumentAuditable(operationType = DocumentOperationType.CREATE, moduleName = "INVOICES")

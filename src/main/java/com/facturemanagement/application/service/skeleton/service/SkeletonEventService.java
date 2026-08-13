@@ -10,12 +10,15 @@ import com.facturemanagement.application.service.skeleton.model.SkeletonProduct;
 import com.facturemanagement.infraestructure.adapters.output.messageBroker.dto.KardexPurchaseDtoRequest;
 import com.facturemanagement.infraestructure.adapters.output.messageBroker.dto.KardexSalesDtoRequest;
 import com.facturemanagement.infraestructure.adapters.output.messageBroker.dto.ReceiptSalesDtoRequest;
+import com.facturemanagement.infraestructure.adapters.output.messageBroker.dto.PurchaseInvoiceEventDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.UUID;
+import com.facturemanagement.infraestructure.adapters.security.IJwtUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +28,8 @@ public class SkeletonEventService {
     private final IWeightedAverageEventPort weightedAverageEventPort;
     private final IReceiptEventPort receiptEventPort;
     private final IpepsEventPort pepsEventPort;
+    private final IJwtUtils jwtUtils;
+    private final PayableAccountCodeResolver payableAccountCodeResolver;
     
     /**
      * Publica eventos de compra uno por uno de forma asíncrona según la configuración
@@ -36,6 +41,24 @@ public class SkeletonEventService {
         for (SkeletonProduct product : facture.getProducts()) {
             publishSinglePurchaseEvent(facture.getFactCode(), product, configType);
         }
+    }
+
+    public void publishPurchaseInvoiceEvent(SkeletonFacture facture) {
+        BigDecimal original = new BigDecimal(facture.getTotalValue());
+        BigDecimal paid = new BigDecimal(facture.getTotalPay());
+        BigDecimal pending = new BigDecimal(facture.getPendingValue());
+        String payableCode = payableAccountCodeResolver.resolveOrFail(
+                facture.getAccountingAccount(), facture.getEntId());
+        PurchaseInvoiceEventDto event = PurchaseInvoiceEventDto.builder()
+                .eventId(UUID.randomUUID().toString()).eventType("PURCHASE_INVOICE_CREATED")
+                .invoiceId(facture.getFactCode()).reference(String.valueOf(facture.getFactCode()))
+                .enterpriseId(facture.getEntId()).supplierId(facture.getThId())
+                .originalAmount(original).paidAmount(paid).pendingAmount(pending)
+                .issueDate(facture.getCreatedAt() == null ? LocalDate.now() : facture.getCreatedAt().toLocalDate())
+                .dueDate(facture.getExpirationDate()).payableAccountId(facture.getAccountingAccount())
+                .payableAccountCode(payableCode).active(true)
+                .tenantId(jwtUtils.getId()).build();
+        receiptEventPort.publishPurchaseInvoiceEvent(event);
     }
     
     private void publishSinglePurchaseEvent(Long factCode, SkeletonProduct product, InventoryConfigurationType configType) {

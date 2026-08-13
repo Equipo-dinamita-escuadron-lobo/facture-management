@@ -24,6 +24,8 @@ spring:
     password: ${RABBITMQ_PASSWORD:guest}
     connection-timeout: ${RABBITMQ_CONNECTION_TIMEOUT:30000}
     requested-heartbeat: ${RABBITMQ_HEARTBEAT:30}
+    publisher-confirm-type: correlated
+    publisher-returns: true
     # Connection pool
     cache:
       connection:

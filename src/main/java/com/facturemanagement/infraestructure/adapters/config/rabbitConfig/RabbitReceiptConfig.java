@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 public class RabbitReceiptConfig {
     //Constants for invoice
     public static final String INVOICE_EXCHANGE = "invoice.exchange";
+    public static final String PURCHASE_INVOICE_EXCHANGE = "purchase.invoice.exchange";
     public static final String INVOICE_PAYMENTS_QUEUE = "invoice.payments.queue";
     public static final String INVOICE_ACCOUNTING_QUEUE = "invoice.accounting.queue";
 
@@ -24,6 +25,11 @@ public class RabbitReceiptConfig {
     @Bean
     FanoutExchange invoiceExchange() {
         return new FanoutExchange(INVOICE_EXCHANGE, true, false);
+    }
+
+    @Bean
+    FanoutExchange purchaseInvoiceExchange() {
+        return new FanoutExchange(PURCHASE_INVOICE_EXCHANGE, true, false);
     }
 
     @Bean

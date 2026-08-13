@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 import com.facturemanagement.application.service.skeleton.model.SkeletonFactureType;
+import com.facturemanagement.application.service.skeleton.model.PurchaseInvoiceStatus;
 
 @Data
 @Builder
@@ -21,4 +22,6 @@ public class SkeletonFactureSummaryDto {
     private String totalValue;
     private SkeletonFactureType factureType;
     private LocalDateTime createdAt;
+    private PurchaseInvoiceStatus purchaseStatus;
+    private long version;
 }

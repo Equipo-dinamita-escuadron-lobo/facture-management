@@ -37,7 +37,7 @@ public class TenantInterceptor implements WebRequestInterceptor {
      */
     @Override
     public void postHandle(WebRequest request, ModelMap model) throws Exception {
-        TenantContext.clear();
+        // The transaction may still be completing.
     }
 
     /**
@@ -52,6 +52,6 @@ public class TenantInterceptor implements WebRequestInterceptor {
      */
     @Override
     public void afterCompletion(WebRequest request, Exception ex) throws Exception {
-
+        TenantContext.clear();
     }
 }
