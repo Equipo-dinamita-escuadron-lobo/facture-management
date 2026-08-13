@@ -54,6 +54,18 @@ class PayableAccountDefaultResolverUnitTest {
     }
 
     @Test
+    void resolvesPayableAccountByDescriptionForLegacyCatalogue() {
+        stubCatalogue("""
+                [
+                  {"id":10,"code":"1105","description":"Caja","classification":"Activo Corriente","status":true},
+                  {"id":21,"code":"2105","description":"Cuentas por pagar","classification":"Pasivo No Corriente","status":true}
+                ]
+                """);
+
+        assertThat(resolver.resolveForPurchase(null, "enterprise-a")).isEqualTo(21L);
+    }
+
+    @Test
     void rejectsInactiveExplicitPayableAccount() {
         stubCatalogue("""
                 [{"id":55,"code":"22050101","classification":"Pasivo Corriente","status":false}]
