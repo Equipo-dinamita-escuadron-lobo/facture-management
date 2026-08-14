@@ -77,14 +77,23 @@ class PayableAccountDefaultResolverUnitTest {
     }
 
     @Test
+    void rejectsWhenCatalogueIsEmpty() {
+        stubCatalogue("[]");
+
+        assertThatThrownBy(() -> resolver.resolveForPurchase(null, "enterprise-a"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("catálogo de cuentas válido");
+    }
+
+    @Test
     void rejectsWhenNoActivePayableExists() {
         stubCatalogue("""
                 [{"id":1,"code":"1105","classification":"Activo Corriente","status":true}]
                 """);
 
         assertThatThrownBy(() -> resolver.resolveForPurchase(null, "enterprise-a"))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("No hay cuentas por pagar activas");
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("no tiene cuentas por pagar activas");
     }
 
     @Test
