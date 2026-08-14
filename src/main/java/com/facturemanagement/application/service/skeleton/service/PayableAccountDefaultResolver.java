@@ -22,6 +22,13 @@ import org.springframework.web.client.RestClient;
 @Slf4j
 public class PayableAccountDefaultResolver {
 
+    static final String NO_VALID_CATALOGUE_MESSAGE =
+            "La empresa aún no tiene un catálogo de cuentas válido. Configure el catálogo de cuentas "
+                    + "en Maestros Generales antes de registrar facturas de compra.";
+    static final String NO_ACTIVE_PAYABLE_MESSAGE =
+            "El catálogo de la empresa no tiene cuentas por pagar activas. Cree o active una cuenta CxP "
+                    + "(por ejemplo código 22xxxx) en el catálogo de cuentas.";
+
     private final RestClient client;
     private final IJwtUtils jwtUtils;
     private final ObjectMapper objectMapper;
@@ -40,6 +47,9 @@ public class PayableAccountDefaultResolver {
      */
     public Long resolveForPurchase(Long requestedAccountId, String enterpriseId) {
         List<CatalogueAccount> accounts = loadAccounts(enterpriseId);
+        if (accounts.isEmpty()) {
+            throw new IllegalArgumentException(NO_VALID_CATALOGUE_MESSAGE);
+        }
         if (requestedAccountId != null) {
             CatalogueAccount explicit = accounts.stream()
                     .filter(account -> requestedAccountId.equals(account.id()))
@@ -58,8 +68,7 @@ public class PayableAccountDefaultResolver {
         }
         return selectDefaultPayable(accounts)
                 .map(CatalogueAccount::id)
-                .orElseThrow(() -> new IllegalStateException(
-                        "No hay cuentas por pagar activas en el catálogo para la empresa " + enterpriseId));
+                .orElseThrow(() -> new IllegalArgumentException(NO_ACTIVE_PAYABLE_MESSAGE));
     }
 
     private Optional<CatalogueAccount> selectDefaultPayable(List<CatalogueAccount> accounts) {

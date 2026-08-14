@@ -51,6 +51,14 @@ public class CustomizedExceptionAdapter extends ResponseEntityExceptionHandler {
      * @return un ResponseEntity que contiene un ExceptionResponse
      *         con los detalles de la excepción y un estado NOT_FOUND
      */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public final ResponseEntity<Object> handleIllegalArgumentException(IllegalArgumentException ex, WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(LocalDateTime.now(), ex.getMessage(),
+                Arrays.asList(request.getDescription(false)));
+
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(FactureNotFound.class)
     public final ResponseEntity<Object> handleUserNotFoundException(FactureNotFound ex, WebRequest request) {
         ExceptionResponse exceptionResponse = new ExceptionResponse(LocalDateTime.now(), ex.getMessage(),
