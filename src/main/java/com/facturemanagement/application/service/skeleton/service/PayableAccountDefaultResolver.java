@@ -78,10 +78,16 @@ public class PayableAccountDefaultResolver {
         String classification = account.classification() == null
                 ? ""
                 : account.classification().toLowerCase(Locale.ROOT);
+        String description = account.description() == null
+                ? ""
+                : account.description().toLowerCase(Locale.ROOT);
         if (code.startsWith("22")) {
             return true;
         }
-        return classification.contains("pasivo corriente");
+        return classification.contains("pasivo corriente")
+                || description.contains("cuentas por pagar")
+                || description.contains("cuenta por pagar")
+                || description.contains("proveedores");
     }
 
     private boolean isActive(CatalogueAccount account) {
@@ -105,6 +111,7 @@ public class PayableAccountDefaultResolver {
                 accounts.add(new CatalogueAccount(
                         node.path("id").asLong(),
                         textOrNull(node, "code"),
+                        textOrNull(node, "description"),
                         textOrNull(node, "classification"),
                         node.has("status") && !node.get("status").isNull() ? node.get("status").asBoolean() : null));
             }
@@ -123,5 +130,5 @@ public class PayableAccountDefaultResolver {
         return value.asText();
     }
 
-    record CatalogueAccount(Long id, String code, String classification, Boolean status) {}
+    record CatalogueAccount(Long id, String code, String description, String classification, Boolean status) {}
 }
