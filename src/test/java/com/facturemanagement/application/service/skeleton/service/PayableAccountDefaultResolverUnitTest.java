@@ -41,24 +41,12 @@ class PayableAccountDefaultResolverUnitTest {
     }
 
     @Test
-    void resolvesDefaultActivePayableAccountFromCatalogue() {
-        stubCatalogue("""
-                [
-                  {"id":10,"code":"1105","classification":"Activo Corriente","status":true},
-                  {"id":99,"code":"22050101","classification":"Pasivo Corriente","status":true},
-                  {"id":98,"code":"2205","classification":"Pasivo No Corriente","status":true}
-                ]
-                """);
-
-        assertThat(resolver.resolveForPurchase(null, "enterprise-a")).isEqualTo(99L);
-    }
-
-    @Test
-    void resolvesPayableAccountByDescriptionForLegacyCatalogue() {
+    void resolvesDefaultSupplierPayableAccountFromCatalogue() {
         stubCatalogue("""
                 [
                   {"id":10,"code":"1105","description":"Caja","classification":"Activo Corriente","status":true},
-                  {"id":21,"code":"2105","description":"Cuentas por pagar","classification":"Pasivo No Corriente","status":true}
+                  {"id":24,"code":"2206","description":"Beneficios a empleados a largo plazo","classification":"Pasivo No Corriente","status":true},
+                  {"id":21,"code":"2105","description":"Cuentas por pagar","classification":"Pasivo Corriente","status":true}
                 ]
                 """);
 
@@ -66,9 +54,60 @@ class PayableAccountDefaultResolverUnitTest {
     }
 
     @Test
+    void acceptsAccountsPayableDescription() {
+        stubCatalogue("""
+                [{"id":21,"code":"2105","description":"Cuentas por pagar","classification":"Pasivo Corriente","status":true}]
+                """);
+
+        assertThat(resolver.resolveForPurchase(null, "enterprise-a")).isEqualTo(21L);
+    }
+
+    @Test
+    void acceptsSuppliersDescription() {
+        stubCatalogue("""
+                [{"id":30,"code":"220501","description":"Proveedores nacionales","classification":"Pasivo Corriente","status":true}]
+                """);
+
+        assertThat(resolver.resolveForPurchase(null, "enterprise-a")).isEqualTo(30L);
+    }
+
+    @Test
+    void rejectsCashAccount() {
+        stubCatalogue("""
+                [{"id":10,"code":"1105","description":"Caja","classification":"Activo Corriente","status":true}]
+                """);
+
+        assertThatThrownBy(() -> resolver.resolveForPurchase(null, "enterprise-a"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Cuenta por Pagar activa");
+    }
+
+    @Test
+    void rejectsEmployeeBenefitsAccount() {
+        stubCatalogue("""
+                [{"id":24,"code":"2206","description":"Beneficios a empleados a largo plazo","classification":"Pasivo No Corriente","status":true}]
+                """);
+
+        assertThatThrownBy(() -> resolver.resolveForPurchase(null, "enterprise-a"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Cuenta por Pagar activa");
+    }
+
+    @Test
+    void rejectsLaborObligationsAccount() {
+        stubCatalogue("""
+                [{"id":31,"code":"2510","description":"Obligaciones laborales","classification":"Pasivo Corriente","status":true}]
+                """);
+
+        assertThatThrownBy(() -> resolver.resolveForPurchase(null, "enterprise-a"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Cuenta por Pagar activa");
+    }
+
+    @Test
     void rejectsInactiveExplicitPayableAccount() {
         stubCatalogue("""
-                [{"id":55,"code":"22050101","classification":"Pasivo Corriente","status":false}]
+                [{"id":55,"code":"2105","description":"Cuentas por pagar","classification":"Pasivo Corriente","status":false}]
                 """);
 
         assertThatThrownBy(() -> resolver.resolveForPurchase(55L, "enterprise-a"))
@@ -86,23 +125,50 @@ class PayableAccountDefaultResolverUnitTest {
     }
 
     @Test
-    void rejectsWhenNoActivePayableExists() {
+    void rejectsWhenNoSupplierPayableExists() {
         stubCatalogue("""
-                [{"id":1,"code":"1105","classification":"Activo Corriente","status":true}]
+                [
+                  {"id":1,"code":"1105","description":"Caja","classification":"Activo Corriente","status":true},
+                  {"id":2,"code":"2206","description":"Beneficios a empleados a largo plazo","classification":"Pasivo No Corriente","status":true},
+                  {"id":3,"code":"2205","description":"Obligaciones financieras no corrientes","classification":"Pasivo No Corriente","status":true}
+                ]
                 """);
 
         assertThatThrownBy(() -> resolver.resolveForPurchase(null, "enterprise-a"))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("no tiene cuentas por pagar activas");
+                .hasMessageContaining("Cuenta por Pagar activa");
     }
 
     @Test
-    void acceptsExplicitActivePayableAccount() {
+    void acceptsExplicitActiveSupplierPayableAccount() {
         stubCatalogue("""
-                [{"id":77,"code":"22050101","classification":"Pasivo Corriente","status":true}]
+                [{"id":77,"code":"2105","description":"Cuentas por pagar","classification":"Pasivo Corriente","status":true}]
                 """);
 
         assertThat(resolver.resolveForPurchase(77L, "enterprise-a")).isEqualTo(77L);
+    }
+
+    @Test
+    void rejectsExplicitNonSupplierPayableAccount() {
+        stubCatalogue("""
+                [{"id":24,"code":"2206","description":"Beneficios a empleados a largo plazo","classification":"Pasivo No Corriente","status":true}]
+                """);
+
+        assertThatThrownBy(() -> resolver.resolveForPurchase(24L, "enterprise-a"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("no es una cuenta por pagar válida");
+    }
+
+    @Test
+    void prefersAccountsPayableOverSuppliersWhenBothExist() {
+        stubCatalogue("""
+                [
+                  {"id":30,"code":"220501","description":"Proveedores","classification":"Pasivo Corriente","status":true},
+                  {"id":21,"code":"2105","description":"Cuentas por pagar","classification":"Pasivo Corriente","status":true}
+                ]
+                """);
+
+        assertThat(resolver.resolveForPurchase(null, "enterprise-a")).isEqualTo(21L);
     }
 
     private void stubCatalogue(String jsonBody) {

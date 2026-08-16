@@ -16,7 +16,7 @@ import org.springframework.web.client.RestClient;
 
 /**
  * Resuelve la cuenta CxP para facturas de compra consultando el catálogo real.
- * Alineado con la regla de Tesorería: pasivo corriente o código PUC 22xxxx.
+ * Solo acepta cuentas con semántica de obligaciones con proveedores (CxP / proveedores).
  */
 @Component
 @Slf4j
@@ -26,8 +26,7 @@ public class PayableAccountDefaultResolver {
             "La empresa aún no tiene un catálogo de cuentas válido. Configure el catálogo de cuentas "
                     + "en Maestros Generales antes de registrar facturas de compra.";
     static final String NO_ACTIVE_PAYABLE_MESSAGE =
-            "El catálogo de la empresa no tiene cuentas por pagar activas. Cree o active una cuenta CxP "
-                    + "(por ejemplo código 22xxxx) en el catálogo de cuentas.";
+            "La empresa no tiene configurada una Cuenta por Pagar activa en el catálogo de cuentas.";
 
     private final RestClient client;
     private final IJwtUtils jwtUtils;
@@ -73,30 +72,77 @@ public class PayableAccountDefaultResolver {
 
     private Optional<CatalogueAccount> selectDefaultPayable(List<CatalogueAccount> accounts) {
         return accounts.stream()
-                .filter(account -> isActive(account) && isPayableAccount(account))
+                .filter(this::isPayableAccount)
                 .sorted(Comparator
-                        .comparingInt((CatalogueAccount account) -> account.code() == null ? 0 : account.code().length())
-                        .reversed()
-                        .thenComparing(CatalogueAccount::code, Comparator.nullsLast(String::compareTo)))
+                        .comparingInt(this::payableSelectionPriority)
+                        .thenComparing(account -> account.code() == null ? "" : account.code()))
                 .findFirst();
     }
 
-    /** Misma regla que expense-receipt-creation en ContAppAng19. */
+    /**
+     * Cuenta elegible solo si representa CxP/proveedores según nombre/descripción del catálogo.
+     * No basta con ser pasivo ni con comenzar por 22.
+     */
     boolean isPayableAccount(CatalogueAccount account) {
-        String code = account.code() == null ? "" : account.code();
-        String classification = account.classification() == null
-                ? ""
-                : account.classification().toLowerCase(Locale.ROOT);
-        String description = account.description() == null
-                ? ""
-                : account.description().toLowerCase(Locale.ROOT);
-        if (code.startsWith("22")) {
+        if (!isActive(account)) {
+            return false;
+        }
+        String code = normalized(account.code());
+        String description = normalized(account.description());
+        if (isExcludedFromSupplierPayables(code, description)) {
+            return false;
+        }
+        return matchesSupplierPayableSemantics(description);
+    }
+
+    private boolean isExcludedFromSupplierPayables(String code, String description) {
+        if (code.startsWith("11")) {
             return true;
         }
-        return classification.contains("pasivo corriente")
-                || description.contains("cuentas por pagar")
+        if (description.contains("caja")
+                || description.contains("banco")
+                || description.contains("efectivo")
+                || description.contains("reserva")) {
+            return true;
+        }
+        return description.contains("beneficios a empleados")
+                || description.contains("beneficio a empleado")
+                || description.contains("obligaciones laborales")
+                || description.contains("obligacion laboral")
+                || description.contains("obligaciones financieras")
+                || description.contains("obligacion financiera")
+                || description.contains("impuestos por pagar")
+                || description.contains("impuesto por pagar")
+                || description.contains("salarios por pagar")
+                || description.contains("salario por pagar")
+                || description.contains("retenciones por pagar")
+                || description.contains("retencion por pagar")
+                || description.contains("nomina por pagar")
+                || description.contains("nómina por pagar");
+    }
+
+    private boolean matchesSupplierPayableSemantics(String description) {
+        return description.contains("cuentas por pagar")
                 || description.contains("cuenta por pagar")
-                || description.contains("proveedores");
+                || description.contains("proveedores")
+                || description.contains("proveedor nacional")
+                || description.contains("proveedor extranjero")
+                || description.contains("proveedor ");
+    }
+
+    private int payableSelectionPriority(CatalogueAccount account) {
+        String description = normalized(account.description());
+        if (description.contains("cuenta por pagar") || description.contains("cuentas por pagar")) {
+            return 0;
+        }
+        if (description.contains("proveedor")) {
+            return 1;
+        }
+        return 2;
+    }
+
+    private static String normalized(String value) {
+        return value == null ? "" : value.toLowerCase(Locale.ROOT).trim();
     }
 
     private boolean isActive(CatalogueAccount account) {
