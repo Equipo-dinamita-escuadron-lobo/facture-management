@@ -60,6 +60,60 @@ class SkeletonFactureServicePurchaseUnitTest {
     }
 
     @Test
+    void acceptsFullyPendingPurchase() {
+        SkeletonFactureRequestDto request = request(1101L, "100000", "0", "100000");
+
+        prepareSuccessfulCreate(request, invoice(11L, PurchaseInvoiceStatus.ACTIVE));
+
+        service.createPurchase(request);
+
+        verify(outbox).enqueue(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.eq("PURCHASE_INVOICE_CREATED"));
+    }
+
+    @Test
+    void acceptsPurchaseWithInitialPartialPayment() {
+        SkeletonFactureRequestDto request = request(1102L, "100000.00", "40000.0", "60000");
+
+        prepareSuccessfulCreate(request, invoice(12L, PurchaseInvoiceStatus.ACTIVE));
+
+        service.createPurchase(request);
+
+        verify(factureRepository).save(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void acceptsFullyPaidPurchase() {
+        SkeletonFactureRequestDto request = request(1103L, "100000", "100000", "0.00");
+
+        prepareSuccessfulCreate(request, invoice(13L, PurchaseInvoiceStatus.ACTIVE));
+
+        service.createPurchase(request);
+
+        verify(factureRepository).save(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void rejectsInconsistentPurchaseBalanceBeforePersistence() {
+        SkeletonFactureRequestDto request = request(1104L, "100000", "40000", "70000");
+
+        assertThatThrownBy(() -> service.createPurchase(request))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("pendiente");
+
+        verify(factureRepository, never()).save(org.mockito.ArgumentMatchers.any());
+        verify(outbox, never()).enqueue(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyString());
+    }
+
+    @Test
+    void rejectsNegativePurchaseAmounts() {
+        SkeletonFactureRequestDto request = request(1105L, "100000", "-1", "100001");
+
+        assertThatThrownBy(() -> service.createPurchase(request))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("negativos");
+    }
+
+    @Test
     void updatePurchaseEnqueuesUpdatedEvent() {
         SkeletonFacture current = invoice(1L, PurchaseInvoiceStatus.ACTIVE);
         SkeletonFacture replacement = invoice(null, PurchaseInvoiceStatus.ACTIVE);
@@ -117,12 +171,27 @@ class SkeletonFactureServicePurchaseUnitTest {
     }
 
     private SkeletonFactureRequestDto request(long code) {
+        return request(code, "100", "0", "100");
+    }
+
+    private SkeletonFactureRequestDto request(long code, String total, String paid, String pending) {
         return SkeletonFactureRequestDto.builder()
                 .factCode(code)
                 .entId("enterprise-a")
                 .factureType(SkeletonFactureType.PURCHASE)
                 .products(Set.of())
+                .totalValue(total)
+                .totalPay(paid)
+                .pendingValue(pending)
                 .build();
+    }
+
+    private void prepareSuccessfulCreate(SkeletonFactureRequestDto request, SkeletonFacture invoice) {
+        SkeletonFactureDetailDto response = SkeletonFactureDetailDto.builder().id(invoice.getId()).build();
+        when(payableAccountDefaultResolver.resolveForPurchase(null, "enterprise-a")).thenReturn(2205L);
+        when(mapper.toEntity(request)).thenReturn(invoice);
+        when(factureRepository.save(invoice)).thenReturn(invoice);
+        when(mapper.toDetailDto(invoice)).thenReturn(response);
     }
 
     private SkeletonFacture invoice(Long id, PurchaseInvoiceStatus status) {
