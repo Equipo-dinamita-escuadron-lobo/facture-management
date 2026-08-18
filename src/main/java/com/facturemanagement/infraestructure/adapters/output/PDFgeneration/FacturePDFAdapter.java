@@ -814,7 +814,7 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
          */
         private Enterprise enterpriseData(Facture facture) {
                 JsonNode jsonResult = this.request.getRequest(
-                                baseUrl + "/enterprises/enterprise/" + facture.getEntId(),
+                                baseUrl + "/api/enterprises/enterprise/" + facture.getEntId(),
                                 jwtUtils);
                 String contact = jsonResult.get("email").asText() + " - " + jsonResult.get("phone").asText();
                 return new Enterprise(
@@ -990,7 +990,7 @@ public class FacturePDFAdapter implements FactureGeneratePDFOutputPort {
          */
         private Third thirdData(Facture facture) {
                 JsonNode jsonResult = this.request
-                                .getRequest(baseUrl + "/thirds/third?thId="
+                                .getRequest(baseUrl + "/api/thirds/third?thId="
                                                 + facture.getThId(), jwtUtils);
                 JsonNode typeIDJson = jsonResult.get("typeId");
                 return new Third(
