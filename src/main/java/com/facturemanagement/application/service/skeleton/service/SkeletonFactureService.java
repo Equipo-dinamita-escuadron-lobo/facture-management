@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -188,6 +189,7 @@ public class SkeletonFactureService {
     }
 
     private void preparePurchaseRequest(SkeletonFactureRequestDto request) {
+        validatePurchaseBalance(request);
         if (request.getFactCode() == null || request.getFactCode() <= 0) {
             request.setFactCode(System.currentTimeMillis() % 1_000_000_000L);
         }
@@ -196,5 +198,26 @@ public class SkeletonFactureService {
         }
         request.setAccountingAccount(
                 payableAccountDefaultResolver.resolveForPurchase(request.getAccountingAccount(), request.getEntId()));
+    }
+
+    private void validatePurchaseBalance(SkeletonFactureRequestDto request) {
+        BigDecimal totalValue = amount(request.getTotalValue(), "totalValue");
+        BigDecimal totalPay = amount(request.getTotalPay(), "totalPay");
+        BigDecimal pendingValue = amount(request.getPendingValue(), "pendingValue");
+
+        if (totalValue.signum() < 0 || totalPay.signum() < 0 || pendingValue.signum() < 0) {
+            throw new IllegalArgumentException("Los valores total, pagado y pendiente no pueden ser negativos");
+        }
+        if (pendingValue.compareTo(totalValue.subtract(totalPay)) != 0) {
+            throw new IllegalArgumentException("El valor pendiente debe ser igual al total menos el valor pagado");
+        }
+    }
+
+    private BigDecimal amount(String value, String field) {
+        try {
+            return new BigDecimal(value);
+        } catch (NumberFormatException | NullPointerException ex) {
+            throw new IllegalArgumentException("El campo " + field + " debe contener un valor numerico valido", ex);
+        }
     }
 }
