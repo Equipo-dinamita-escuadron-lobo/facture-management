@@ -1,6 +1,7 @@
 package com.facturemanagement.application.service.skeleton.service;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -16,6 +17,7 @@ import com.facturemanagement.application.service.skeleton.model.SkeletonFactureT
 import com.facturemanagement.application.service.skeleton.repository.SkeletonFactureRepository;
 import com.facturemanagement.application.service.skeleton.repository.SkeletonReturnRepository;
 import java.util.List;
+import java.time.LocalDate;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,6 +59,30 @@ class SkeletonFactureServicePurchaseUnitTest {
 
         verify(factureRepository).save(invoice);
         verify(outbox).enqueue(invoice, "PURCHASE_INVOICE_CREATED");
+    }
+
+    @Test
+    void createPurchasePersistsSelectedIssueDate() {
+        SkeletonFactureRequestDto request = request(1004L);
+        request.setIssueDate(LocalDate.of(2026, 7, 15));
+        request.setExpirationDate(LocalDate.of(2026, 8, 14));
+        SkeletonFactureMapper realMapper = new SkeletonFactureMapper();
+        SkeletonFactureService realService = new SkeletonFactureService(
+                factureRepository,
+                mock(SkeletonReturnRepository.class),
+                realMapper,
+                outbox,
+                payableAccountDefaultResolver);
+        when(payableAccountDefaultResolver.resolveForPurchase(null, "enterprise-a")).thenReturn(2205L);
+        when(factureRepository.save(org.mockito.ArgumentMatchers.any(SkeletonFacture.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        SkeletonFactureDetailDto response = realService.createPurchase(request);
+
+        assertThat(response.getIssueDate()).isEqualTo(LocalDate.of(2026, 7, 15));
+        verify(outbox).enqueue(org.mockito.ArgumentMatchers.argThat(invoice ->
+                LocalDate.of(2026, 7, 15).equals(invoice.getIssueDate())),
+                org.mockito.ArgumentMatchers.eq("PURCHASE_INVOICE_CREATED"));
     }
 
     @Test

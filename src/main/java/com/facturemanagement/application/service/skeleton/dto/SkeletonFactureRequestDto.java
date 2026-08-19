@@ -42,6 +42,8 @@ public class SkeletonFactureRequestDto {
     
     @NotBlank(message = "El valor pendiente es obligatorio")
     private String pendingValue;
+
+    private LocalDate issueDate;
     
     private LocalDate expirationDate;
     

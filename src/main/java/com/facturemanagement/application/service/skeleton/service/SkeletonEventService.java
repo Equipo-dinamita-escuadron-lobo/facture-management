@@ -54,7 +54,9 @@ public class SkeletonEventService {
                 .invoiceId(facture.getFactCode()).reference(String.valueOf(facture.getFactCode()))
                 .enterpriseId(facture.getEntId()).supplierId(facture.getThId())
                 .originalAmount(original).paidAmount(paid).pendingAmount(pending)
-                .issueDate(facture.getCreatedAt() == null ? LocalDate.now() : facture.getCreatedAt().toLocalDate())
+                .issueDate(facture.getIssueDate() != null
+                        ? facture.getIssueDate()
+                        : facture.getCreatedAt() != null ? facture.getCreatedAt().toLocalDate() : LocalDate.now())
                 .dueDate(facture.getExpirationDate()).payableAccountId(facture.getAccountingAccount())
                 .payableAccountCode(payableCode).active(true)
                 .tenantId(jwtUtils.getId()).build();

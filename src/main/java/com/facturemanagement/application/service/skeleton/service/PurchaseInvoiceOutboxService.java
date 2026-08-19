@@ -39,7 +39,7 @@ public class PurchaseInvoiceOutboxService {
                     .originalAmount(new BigDecimal(facture.getTotalValue()))
                     .paidAmount(new BigDecimal(facture.getTotalPay()))
                     .pendingAmount(new BigDecimal(facture.getPendingValue()))
-                    .issueDate(facture.getCreatedAt() == null ? LocalDate.now() : facture.getCreatedAt().toLocalDate())
+                    .issueDate(resolveIssueDate(facture))
                     .dueDate(facture.getExpirationDate())
                     .payableAccountId(facture.getAccountingAccount())
                     .payableAccountCode(payableCode)
@@ -70,5 +70,12 @@ public class PurchaseInvoiceOutboxService {
         } catch (Exception ex) {
             throw new IllegalStateException("No fue posible publicar el evento de compra", ex);
         }
+    }
+
+    private LocalDate resolveIssueDate(SkeletonFacture facture) {
+        if (facture.getIssueDate() != null) {
+            return facture.getIssueDate();
+        }
+        return facture.getCreatedAt() != null ? facture.getCreatedAt().toLocalDate() : LocalDate.now();
     }
 }
