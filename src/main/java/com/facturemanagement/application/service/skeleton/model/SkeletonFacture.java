@@ -45,6 +45,9 @@ public class SkeletonFacture {
     
     @Column(nullable = false)
     private String pendingValue;
+
+    @Column(name = "issue_date")
+    private LocalDate issueDate;
     
     private LocalDate expirationDate;
     
@@ -77,6 +80,9 @@ public class SkeletonFacture {
     
     @PrePersist
     protected void onCreate() {
+        if (issueDate == null) {
+            issueDate = LocalDate.now();
+        }
         createdAt = updatedAt = LocalDateTime.now();
     }
 

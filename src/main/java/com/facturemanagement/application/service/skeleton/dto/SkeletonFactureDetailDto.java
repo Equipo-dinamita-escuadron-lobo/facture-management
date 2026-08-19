@@ -25,6 +25,7 @@ public class SkeletonFactureDetailDto {
     private String totalValue;
     private String totalPay;
     private String pendingValue;
+    private LocalDate issueDate;
     private LocalDate expirationDate;
     private Long accountingAccount;
     private SkeletonFactureType factureType;

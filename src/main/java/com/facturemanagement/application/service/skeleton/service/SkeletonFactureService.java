@@ -48,9 +48,14 @@ public class SkeletonFactureService {
     public SkeletonFactureDetailDto updatePurchase(Long id, SkeletonFactureRequestDto request) {
         SkeletonFacture current = factureRepository.findByIdWithProducts(id).orElseThrow(() -> new IllegalArgumentException("Factura de compra no encontrada"));
         if (current.getFactureType() != SkeletonFactureType.PURCHASE || current.getPurchaseStatus() == PurchaseInvoiceStatus.VOIDED) throw new IllegalArgumentException("La factura de compra no se puede actualizar");
+        if (request.getIssueDate() == null) {
+            request.setIssueDate(current.getIssueDate() != null
+                    ? current.getIssueDate()
+                    : current.getCreatedAt() != null ? current.getCreatedAt().toLocalDate() : LocalDate.now());
+        }
         preparePurchaseRequest(request);
         SkeletonFacture replacement = mapper.toEntity(request);
-        current.setFactCode(replacement.getFactCode());current.setEntId(replacement.getEntId());current.setThId(replacement.getThId());current.setTotalValue(replacement.getTotalValue());current.setTotalPay(replacement.getTotalPay());current.setPendingValue(replacement.getPendingValue());current.setExpirationDate(replacement.getExpirationDate());current.setAccountingAccount(replacement.getAccountingAccount());current.getProducts().clear();replacement.getProducts().forEach(current::addProduct);
+        current.setFactCode(replacement.getFactCode());current.setEntId(replacement.getEntId());current.setThId(replacement.getThId());current.setTotalValue(replacement.getTotalValue());current.setTotalPay(replacement.getTotalPay());current.setPendingValue(replacement.getPendingValue());current.setIssueDate(replacement.getIssueDate());current.setExpirationDate(replacement.getExpirationDate());current.setAccountingAccount(replacement.getAccountingAccount());current.getProducts().clear();replacement.getProducts().forEach(current::addProduct);
         SkeletonFacture saved = factureRepository.save(current);
         purchaseOutbox.enqueue(saved, "PURCHASE_INVOICE_UPDATED");
         return mapper.toDetailDto(saved);
@@ -191,8 +196,14 @@ public class SkeletonFactureService {
         if (request.getFactCode() == null || request.getFactCode() <= 0) {
             request.setFactCode(System.currentTimeMillis() % 1_000_000_000L);
         }
+        if (request.getIssueDate() == null) {
+            request.setIssueDate(LocalDate.now());
+        }
         if (request.getExpirationDate() == null) {
-            request.setExpirationDate(LocalDate.now().plusDays(DEFAULT_PAYMENT_TERM_DAYS));
+            request.setExpirationDate(request.getIssueDate().plusDays(DEFAULT_PAYMENT_TERM_DAYS));
+        }
+        if (!request.getExpirationDate().isAfter(request.getIssueDate())) {
+            throw new IllegalArgumentException("La fecha de vencimiento debe ser posterior a la fecha de emisión");
         }
         request.setAccountingAccount(
                 payableAccountDefaultResolver.resolveForPurchase(request.getAccountingAccount(), request.getEntId()));
